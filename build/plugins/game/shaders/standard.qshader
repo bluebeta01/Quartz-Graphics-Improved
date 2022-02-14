@@ -1,0 +1,18 @@
+{
+	"ps_source" : "shaders/source/dx/standard.hlsl",
+	"ps_entrypoint" : "PShader",
+	"vs_source" : "shaders/source/dx/standard.hlsl",
+	"vs_entrypoint" : "VShader",
+	"props" : [
+		{
+			"type" : "texture2d",
+			"name" : "diffuse",
+			"register" : 0
+		},
+		{
+			"type" : "samplerstate",
+			"name" : "sampler",
+			"register" : 0
+		}
+	]
+}

@@ -1,0 +1,11 @@
+The Quartz Model File Format is a follows:
+
+x16 unsigned char			QMF Specifier (QUARTZMODELFILE\0)
+int							QMF Version
+int							Model name length
+xN unsigned char			Model Name (null terminated)
+int							Material Name Length
+xN unsigned char			Material Name (null terminated)
+int							Number of verts
+int							Number of floats per vert
+xN float					Vertex Data

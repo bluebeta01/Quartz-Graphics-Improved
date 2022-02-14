@@ -1,0 +1,56 @@
+#version 400
+out vec4 FragColor;
+  
+in vec3 fragPosition;
+in vec3 normal;
+in vec2 uv;
+
+struct pointLight
+{
+	vec3 position;
+	float brightness;
+	float radius;
+	vec3 color;
+};
+
+uniform int pointLightNumber;
+uniform pointLight pointLights[128];
+uniform sampler2D diffuseTexture;
+
+float getLightBrightness(int i)
+{
+	//float dis = distance(pointLights[i].position, fragPosition);
+	//float slope = -0.2;
+	//float b = pointLights[i].brightness;
+	//float y = (slope * dis) + b;
+	//return 0.1;
+	//return max(b, 0);
+	
+	float dis = distance(pointLights[i].position, fragPosition);
+	float con = 1.0;
+	float lin = 0.001;
+	float result = (1.0 / (con + lin * dis)) * 2;
+	return result;
+}
+
+vec3 calcLight()
+{
+	vec3 ambient = vec3(0.0, 0.0, 0.0);
+	vec3 norm = normalize(normal);
+	vec3 finalColor = vec3(0.0 ,0.0 ,0.0);
+	for(int i = 0; i < pointLightNumber; i++)
+	{
+		vec3 lightAngle = normalize(pointLights[i].position - fragPosition);
+		float diff = max(dot(norm, lightAngle), 0.0);
+		vec3 diffuse = diff * pointLights[i].color * getLightBrightness(i);
+		finalColor = finalColor + diffuse;
+	}
+	finalColor = (finalColor + ambient);
+	return finalColor;
+}
+
+void main()
+{
+	vec3 color = calcLight() * texture(diffuseTexture, uv).xyz;
+    FragColor = vec4( color, 1.0 );
+}

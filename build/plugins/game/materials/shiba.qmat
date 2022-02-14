@@ -1,0 +1,10 @@
+{
+	"shader" : "shaders/standard.qshader",
+	"props" : [
+		{
+			"type" : "texture2d",
+			"name" : "diffuse",
+			"value" : "textures/shiba.png"
+		}
+	]
+}

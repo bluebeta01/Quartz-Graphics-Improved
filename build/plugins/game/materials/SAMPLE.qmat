@@ -1,0 +1,20 @@
+{
+	"shader" : "standard",
+	"props" : [
+		{
+			"type" : "texture2d",
+			"name" : "diffuse",
+			"value" : "textures/wood.png"
+		},
+		{
+			"type" : "float",
+			"name" : "myfloat",
+			"value" : 5.56
+		},
+		{
+			"type" : "int",
+			"name" : "myint",
+			"value" : 667
+		}
+	]
+}

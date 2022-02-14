@@ -1,0 +1,5 @@
+--Actually load and store plugin information when loading a plugin in the AssetManager
+--Add a virtual file structure so that the game knows what asset files a plugin
+	contains and doesn't have to search each plugin for a file when loading
+--Add ability to know when a texture is done uploading to the GPU so we can mark it as loaded and
+	delete it's data
