@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <unordered_map>
 #include "device.h"
 #include "bindabledescriptions.h"
+#include "cbuffer.h"
 
 struct PipelineCreateInfo
 {
@@ -20,12 +22,14 @@ public:
 		m_device(createInfo.device)
 	{}
 
+	std::shared_ptr<ShaderCBufferDescription> findCBufferDescriptionByName(std::string& name) const;
+
 	std::shared_ptr<Device> getDevice() const { return m_device; }
-	const std::vector<ShaderCBufferDescription>& getCBufferDescriptions() const { return m_cBufferDescriptions; }
+	const std::unordered_map<int, std::shared_ptr<ShaderCBufferDescription>>& getCBufferDescriptions() const { return m_bufferDescriptions; }
 	const std::vector<ShaderBindableDescription>& getShaderBindableDescriptions() const { return m_shaderBindableDescriptions; }
 
-private:
-	std::vector<Device> m_device;
-	std::vector<ShaderCBufferDescription> m_cBufferDescriptions;
+protected:
+	std::shared_ptr<Device> m_device;
+	std::unordered_map<int, std::shared_ptr<ShaderCBufferDescription>> m_bufferDescriptions;
 	std::vector<ShaderBindableDescription> m_shaderBindableDescriptions;
 };

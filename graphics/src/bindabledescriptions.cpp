@@ -1,7 +1,7 @@
 #include "bindabledescriptions.h"
 
-ShaderCBufferDescription::ShaderCBufferDescription(const std::string& name, int slot) :
-	m_name(name), m_slot(slot)
+ShaderCBufferDescription::ShaderCBufferDescription(const std::string& name, int slot, int id, int size) :
+	m_name(name), m_slot(slot), m_id(id), m_size(size)
 {
 
 }

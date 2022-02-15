@@ -4,7 +4,7 @@
 #include "device.h"
 #include "descheap.h"
 #include "bindabledescriptions.h"
-#include "resource.h"
+#include "graphicsresource.h"
 
 struct CBufferCreateInfo
 {
@@ -27,7 +27,7 @@ public:
 	std::shared_ptr<Device> getDevice() const { return m_device; }
 	std::shared_ptr<DescriptorHeap> getDescriptorHeap() const { return m_descriptorHeap; }
 	int getSize() const { return m_size; }
-private:
+protected:
 	std::shared_ptr<Device> m_device;
 	std::shared_ptr<DescriptorHeap> m_descriptorHeap;
 	int m_size;

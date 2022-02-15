@@ -1,5 +1,5 @@
 #pragma once
-#include "resource.h"
+#include "graphicsresource.h"
 
 class Device : public Resource
 {

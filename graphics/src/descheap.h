@@ -2,7 +2,7 @@
 #include <memory>
 #include <list>
 #include "device.h"
-#include "resource.h"
+#include "graphicsresource.h"
 
 enum class DescriptorHeapType
 {

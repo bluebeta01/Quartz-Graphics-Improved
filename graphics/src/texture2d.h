@@ -29,8 +29,6 @@ public:
 		m_device(createInfo.device), m_desciptorHeap(createInfo.desciptorHeap), m_width(createInfo.width),
 		m_height(createInfo.height), m_type(createInfo.type), m_arraySize(createInfo.arraySize) {}
 
-	virtual void bufferData(void* data, int dataSize) = 0;
-
 	std::shared_ptr<Device> getDevice() const { return m_device; }
 	std::shared_ptr<DescriptorHeap> getDesciptorHeap() const { return m_desciptorHeap; }
 	int getWidth() const { return m_width; }
@@ -38,7 +36,7 @@ public:
 	TextureType getType() const { return m_type; }
 	int getArraySize() const { return m_arraySize; }
 
-private:
+protected:
 	std::shared_ptr<Device> m_device;
 	std::shared_ptr<DescriptorHeap> m_desciptorHeap;
 	int m_width;
