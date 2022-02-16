@@ -27,9 +27,9 @@ void GameWindow::update()
 	s_resizedFlag = false;
 	Window::update();
 }
-HWND GameWindow::getHandle()
+HWND* GameWindow::getHandle()
 {
-	return Window::windowHandle;
+	return &Window::windowHandle;
 }
 int GameWindow::getWidth()
 {

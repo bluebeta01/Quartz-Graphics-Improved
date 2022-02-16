@@ -10,7 +10,8 @@ namespace Quartz
 ShaderAsset::ShaderAsset(const std::string& name, const std::string& absolutePath) :
 	Asset(Asset::Type::SHADER, name, absolutePath)
 {
-	m_pipeline = Renderer::s_gengine.createPipeline();
+	static int shaderId = 0;
+	m_id = shaderId++;
 }
 
 void ShaderAsset::load(std::shared_ptr<Asset> asset)
@@ -97,13 +98,24 @@ void ShaderAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 	std::string vsPath = AssetManager::findFile(vsSourceDir);
 	std::string psPath = AssetManager::findFile(psSourceDir);
 
-	Pipeline::ShaderData shaderData;
+
+	PipelineCreateInfo info = {};
+	info.device = Renderer::s_device;
+	info.id = shader->m_id;
+	info.psEntryPoint = psEntryPoint;
+	info.psPath = psPath;
+	info.vsEntryPoint = vsEntryPoint;
+	info.vsPath = vsPath;
+
+	shader->m_pipeline = Pipeline::create(info);
+
+	/*Pipeline::ShaderData shaderData;
 	shaderData.psPath = &psPath;
 	shaderData.psEntryPoint = &psEntryPoint;
 	shaderData.vsPath = &vsPath;
 	shaderData.vsEntryPoint = &vsEntryPoint;
 
-	shader->m_pipeline = Renderer::s_gengine.createPipeline(shader->m_pipeline, shaderData);
+	shader->m_pipeline = Renderer::s_gengine.createPipeline(shader->m_pipeline, shaderData);*/
 	
 	shader->m_loadStatus = Asset::Status::LOADED;
 }

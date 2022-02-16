@@ -9,7 +9,7 @@ DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	swapChainDesc.BufferCount = m_frameCount;
 	swapChainDesc.Width = m_width;
 	swapChainDesc.Height = m_height;
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.SampleDesc.Count = 1;
@@ -36,7 +36,7 @@ DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	dsTextureInfo.device = m_device;
 	dsTextureInfo.height = m_height;
 	dsTextureInfo.width = m_width;
-	dsTextureInfo.type == TextureType::DEPTH_STENCIL;
+	dsTextureInfo.type = TextureType::DEPTH_STENCIL;
 
 	Texture2DCreateInfo rtTextureInfo = {};
 	rtTextureInfo.arraySize = 1;
@@ -44,7 +44,7 @@ DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	rtTextureInfo.device = m_device;
 	rtTextureInfo.height = m_height;
 	rtTextureInfo.width = m_width;
-	rtTextureInfo.type == TextureType::IMAGE;
+	rtTextureInfo.type = TextureType::RENDER_TARGET;
 
 	for (int frame = 0; frame < m_frameCount; frame++)
 	{
@@ -60,7 +60,7 @@ DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 		fbInfo.device = m_device;
 		fbInfo.textureCount = textures.size();
 		fbInfo.textures = &textures;
-		std::shared_ptr<Framebuffer> framebuffer = std::make_shared<Framebuffer>(fbInfo);
+		std::shared_ptr<Framebuffer> framebuffer = Framebuffer::create(fbInfo);
 		m_framebuffers.push_back(framebuffer);
 	}
 

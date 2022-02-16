@@ -8,7 +8,7 @@ class GameWindow
 public:
 	static void initialize(HWND windowHandle = nullptr, int width = 1920, int height = 1080);
 	static void update();
-	static HWND getHandle();
+	static HWND* getHandle();
 	static int getWidth();
 	static int getHeight();
 	static void setWidth(int width);

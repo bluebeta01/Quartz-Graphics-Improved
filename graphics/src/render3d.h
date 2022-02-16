@@ -13,7 +13,7 @@ public:
 		m_device(device)
 	{}
 
-	std::shared_ptr<Render3D> create(std::shared_ptr<Device> device);
+	static std::shared_ptr<Render3D> create(std::shared_ptr<Device> device);
 	virtual void beginFrame(std::shared_ptr<Framebuffer> framebuffer) = 0;
 	virtual void clearFrame() = 0;
 	virtual void setViewport(int x, int y, int width, int height) = 0;

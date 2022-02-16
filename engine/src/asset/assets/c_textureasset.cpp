@@ -9,7 +9,7 @@ namespace Quartz
 TextureAsset::TextureAsset(const std::string& name, const std::string& abolsutePath) :
 	Asset(Asset::Type::TEXTURE2D, name, abolsutePath), m_width(0), m_height(0), m_textureData({})
 {
-	m_texture2D = Renderer::s_gengine.createTexture2D();
+	//m_texture2D = Renderer::s_gengine.createTexture2D();
 }
 
 void TextureAsset::load(std::shared_ptr<Asset> asset)
@@ -34,8 +34,8 @@ void TextureAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 		return;
 	}
 
-	asset->m_texture2D = Renderer::s_gengine.createTexture2D(asset->m_texture2D, asset->m_width, asset->m_height);
-	asset->m_texture2D->bufferData(asset->m_textureData.rawTextureData.get());
+	//asset->m_texture2D = Renderer::s_gengine.createTexture2D(asset->m_texture2D, asset->m_width, asset->m_height);
+	//asset->m_texture2D->bufferData(asset->m_textureData.rawTextureData.get());
 
 	asset->m_loadStatus = Asset::Status::READY_FOR_GPU_UPLOAD;
 }

@@ -23,7 +23,7 @@ public:
 		m_device(createInfo.device), m_id(createInfo.id)
 	{}
 
-	std::shared_ptr<Pipeline> create(const PipelineCreateInfo& createInfo);
+	static std::shared_ptr<Pipeline> create(const PipelineCreateInfo& createInfo);
 	std::shared_ptr<ShaderBindableDescription> findBindableDescriptionByName(std::string& name) const;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }

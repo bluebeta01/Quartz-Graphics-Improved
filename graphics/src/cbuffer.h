@@ -18,7 +18,7 @@ public:
 		m_device(createInfo.device), m_size(createInfo.size)
 	{}
 
-	std::shared_ptr<CBuffer> create(const CBufferCreateInfo& createInfo);
+	static std::shared_ptr<CBuffer> create(const CBufferCreateInfo& createInfo);
 	virtual void bufferData(void* data, int dataSize) = 0;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }

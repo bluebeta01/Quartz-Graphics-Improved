@@ -22,7 +22,7 @@ public:
 		m_textureArraySize(createInfo.textureArraySize), m_frameCount(createInfo.frameCount)
 	{}
 
-	std::shared_ptr<Swapchain> create(const SwapchainCreateInfo& createInfo);
+	static std::shared_ptr<Swapchain> create(const SwapchainCreateInfo& createInfo);
 	virtual std::shared_ptr<Framebuffer> acquireNextFrame() = 0;
 	virtual void waitForFrame() = 0;
 	virtual void releaseFrame() = 0;

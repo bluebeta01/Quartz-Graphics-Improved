@@ -187,7 +187,7 @@ void AssetManager::proccessAssets()
 			if (asset->m_type == Asset::Type::TEXTURE2D)
 			{
 				std::shared_ptr<TextureAsset> texture = std::static_pointer_cast<TextureAsset>(asset);
-				if (texture->m_texture2D->m_uploaded)
+				if (/*texture->m_texture2D->m_uploaded*/true)
 				{
 					texture->m_loadStatus = Asset::Status::LOADED;
 					texture->m_textureData.rawTextureData = nullptr;

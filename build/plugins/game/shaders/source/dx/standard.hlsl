@@ -9,6 +9,11 @@ cbuffer matracies : register(b0)
 	float3x3 normalMatrix;
 };
 
+cbuffer testbuffer : register(b3)
+{
+	float4x4 nothingfloat;
+};
+
 struct VOut
 {
     float4 position : SV_POSITION;
@@ -22,6 +27,7 @@ VOut VShader(float4 position : POSITION, float4 normal : NORMAL, float2 texcoord
     VOut output;
 	position.w = 1.0f;
     output.position = mul(position, modelMatrix);
+	output.position = mul(position, nothingfloat);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
 	output.tex = texcoord;

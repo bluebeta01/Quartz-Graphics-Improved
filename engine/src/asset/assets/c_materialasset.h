@@ -1,7 +1,8 @@
 #pragma once
 #include <unordered_map>
-#include <graphicsengine.h>
+#include <graphics.h>
 #include "asset/assets/c_asset.h"
+#include "render/c_material.h"
 
 namespace Quartz
 {

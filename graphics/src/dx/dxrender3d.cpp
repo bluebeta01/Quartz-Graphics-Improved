@@ -9,6 +9,7 @@
 DxRender3D::DxRender3D(std::shared_ptr<Device> device) :
 	Render3D(device)
 {
+	
 }
 
 void DxRender3D::beginFrame(std::shared_ptr<Framebuffer> framebuffer)
@@ -16,6 +17,10 @@ void DxRender3D::beginFrame(std::shared_ptr<Framebuffer> framebuffer)
 	m_currentFramebuffer = framebuffer;
 
 	std::shared_ptr<DxFramebuffer> dxfb = std::static_pointer_cast<DxFramebuffer>(m_currentFramebuffer);
+
+	if(m_commandList == nullptr)
+		((DxDevice*)m_device.get())->getDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, dxfb->getAllocator(), nullptr, IID_PPV_ARGS(&m_commandList));
+
 
 	dxfb->getAllocator()->Reset();
 	m_commandList->Reset(dxfb->getAllocator(), nullptr);
@@ -98,11 +103,13 @@ void DxRender3D::renderVBuffer(std::shared_ptr<VBuffer> vBuffer)
 void DxRender3D::endFrame()
 {
 	DxTexture2D* rt = (DxTexture2D*)m_currentFramebuffer->getTextures()[0].get();
+	DxFramebuffer* dxfb = (DxFramebuffer*)m_currentFramebuffer.get();
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rt->getTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 	m_commandList->Close();
 
 	ID3D12CommandList* renderCommandList[] = { m_commandList };
 	((DxDevice*)m_device.get())->getQueue()->ExecuteCommandLists(1, renderCommandList);
+	((DxDevice*)m_device.get())->getQueue()->Signal(dxfb->getFence(), 0);
 }
 
 void DxRender3D::uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize)

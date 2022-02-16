@@ -21,7 +21,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 
 		if (m_type == TextureType::IMAGE)
 		{
-			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 			state = D3D12_RESOURCE_STATE_COPY_DEST;
 		}
@@ -33,7 +33,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 		}
 		if (m_type == TextureType::RENDER_TARGET)
 		{
-			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 			state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		}
@@ -105,7 +105,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 	if (m_type == TextureType::RENDER_TARGET)
 	{
 		D3D12_RENDER_TARGET_VIEW_DESC desc = {};
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		if (m_arraySize == 1)
 		{
 			desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
@@ -118,7 +118,8 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 
 		m_heapIndex = device->m_cpuRtvHeap->getNextFreeIndex();
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuRtvHeap->getHandleOfIndex(m_heapIndex);
-		device->getDevice()->CreateRenderTargetView(m_texture, &desc, handle);
+		device->getDevice()->CreateRenderTargetView(m_texture, nullptr, handle);
+		HRESULT r = device->getDevice()->GetDeviceRemovedReason();
 	}
 }
 

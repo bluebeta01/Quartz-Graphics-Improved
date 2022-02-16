@@ -5,6 +5,6 @@
 class Device : public Resource
 {
 public:
-	std::shared_ptr<Device> create();
+	static std::shared_ptr<Device> create();
 	virtual void waitForIdle() = 0;
 };

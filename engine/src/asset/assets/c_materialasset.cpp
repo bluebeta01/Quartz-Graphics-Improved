@@ -108,7 +108,7 @@ void MaterialAsset::loadDependencies()
 		if (pair.second.m_type == MaterialProperty::Type::TEXTURE2D)
 		{
 			MaterialProperty prop = m_material->getPropertyMap().find(pair.first)->second;
-			prop.m_value = std::dynamic_pointer_cast<void>(std::static_pointer_cast<TextureAsset>(AssetManager::getAsset(Asset::Type::TEXTURE2D, pair.second.m_valueName))->m_texture2D);
+			//prop.m_value = std::dynamic_pointer_cast<void>(std::static_pointer_cast<TextureAsset>(AssetManager::getAsset(Asset::Type::TEXTURE2D, pair.second.m_valueName))->m_texture2D);
 			m_material->setProperty(prop);
 		}
 	}

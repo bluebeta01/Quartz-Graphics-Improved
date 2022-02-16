@@ -138,6 +138,7 @@ void DxPipeline::reflectShaders(ID3DBlob* vertexShader, ID3DBlob* pixelShader)
 
 				cBuffers.push_back(bufferBindableDescription);
 				m_cBufferCount++;
+				break;
 			}
 
 			case D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE:
@@ -150,6 +151,7 @@ void DxPipeline::reflectShaders(ID3DBlob* vertexShader, ID3DBlob* pixelShader)
 
 				textures.push_back(textureBindableDescription);
 				m_textureCount++;
+				break;
 			}
 			}
 		}

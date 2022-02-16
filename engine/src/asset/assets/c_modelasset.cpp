@@ -43,7 +43,7 @@ void ModelAsset::loadCallback(std::shared_ptr<void> callbackArguments)
 	}
 
 	UINT vertexBufferSize = model->m_modelData.vertCount * model->m_modelData.floatsPerVert * sizeof(float);
-	model->m_vBuffer = Renderer::s_gengine.createVBuffer(vertexBufferSize, sizeof(float) * model->m_modelData.floatsPerVert, model->m_modelData.vertCount);
+	//model->m_vBuffer = Renderer::s_gengine.createVBuffer(vertexBufferSize, sizeof(float) * model->m_modelData.floatsPerVert, model->m_modelData.vertCount);
 	
 	model->m_unloadedDependencies = true;
 	model->m_loadStatus = Asset::Status::READY_FOR_GPU_UPLOAD;

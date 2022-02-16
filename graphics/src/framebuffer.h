@@ -14,8 +14,9 @@ class Framebuffer
 {
 public:
 	Framebuffer(const FramebufferCreateInfo& createInfo);
+	virtual ~Framebuffer() {};
 
-	std::shared_ptr<Framebuffer> create(const FramebufferCreateInfo& createInfo);
+	static std::shared_ptr<Framebuffer> create(const FramebufferCreateInfo& createInfo);
 	void setTexture(int textureIndex, std::shared_ptr<Texture2D> texture);
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }
