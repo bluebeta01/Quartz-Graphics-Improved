@@ -33,8 +33,3 @@ void DxCBuffer::bufferData(void* data, int dataSize)
 {
 	memcpy_s(m_bufferPtr, m_size, data, dataSize);
 }
-
-NativeResource DxCBuffer::getNativeResource()
-{
-	return (NativeResource)m_buffer;
-}

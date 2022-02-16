@@ -10,6 +10,8 @@ public:
 	DxGPUDescriptorHeap(ID3D12Device* device, DxDescriptorHeapType type, int size);
 
 	int getNextIndex();
+	int getCurrentIndex();
+	int requestSpace(int numOfIndexes);
 	CD3DX12_CPU_DESCRIPTOR_HANDLE getCPUHandleOfIndex (int index) const;
 	CD3DX12_GPU_DESCRIPTOR_HANDLE getGPUHandleOfIndex (int index) const;
 
@@ -23,5 +25,5 @@ private:
 	int m_size = 0;
 	ID3D12DescriptorHeap* m_heap = nullptr;
 	UINT m_descriptorSize = 0;
-	int m_nextIndex = 0;
+	int m_currentIndex = 0;
 };

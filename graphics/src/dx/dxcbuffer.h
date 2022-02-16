@@ -8,7 +8,9 @@ public:
 	DxCBuffer(const CBufferCreateInfo& createInfo);
 
 	void bufferData(void* data, int dataSize);
-	NativeResource getNativeResource();
+	NativeResource getNativeResource() const { return m_buffer; }
+
+	int getHeapIndex() const { return m_heapIndex; }
 
 private:
 	ID3D12Resource* m_buffer = nullptr;

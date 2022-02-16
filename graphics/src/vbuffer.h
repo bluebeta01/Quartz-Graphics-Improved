@@ -18,6 +18,7 @@ public:
 		m_vertexCount(createInfo.vertexCount)
 	{}
 
+	std::shared_ptr<VBuffer> create(const VBufferCreateInfo& createInfo);
 	virtual void bufferData(void* data, int dataSize) = 0;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }
@@ -25,7 +26,7 @@ public:
 	int getStride() const { return m_stride; }
 	int getVertexCount() const { return m_vertexCount; }
 
-private:
+protected:
 	std::shared_ptr<Device> m_device;
 	int m_size;
 	int m_stride;

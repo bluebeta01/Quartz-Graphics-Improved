@@ -21,8 +21,23 @@ DxGPUDescriptorHeap::DxGPUDescriptorHeap(ID3D12Device* device, DxDescriptorHeapT
 
 int DxGPUDescriptorHeap::getNextIndex()
 {
-	int i = m_nextIndex;
-	m_nextIndex = (m_nextIndex + 1) % m_size;
+	int i = m_currentIndex;
+	m_currentIndex = (m_currentIndex + 1) % m_size;
+	return i;
+}
+
+int DxGPUDescriptorHeap::getCurrentIndex()
+{
+	return m_currentIndex;
+}
+
+int DxGPUDescriptorHeap::requestSpace(int numOfIndexes)
+{
+	if (m_currentIndex + numOfIndexes >= m_size)
+		m_currentIndex = 0;
+
+	int i = m_currentIndex;
+	m_currentIndex += numOfIndexes;
 	return i;
 }
 

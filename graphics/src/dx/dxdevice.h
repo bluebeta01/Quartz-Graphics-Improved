@@ -17,9 +17,11 @@ public:
 	std::shared_ptr<DxCPUDescriptorHeap> m_cpuRtvHeap;
 	std::shared_ptr<DxGPUDescriptorHeap> m_gpuCbvSrvUavHeap;
 
+	NativeResource getNativeResource() const { return m_device; }
 	void waitForIdle();
 
 	ID3D12Device* getDevice() const { return m_device; }
+	IDXGIFactory4* getFactory() const { return m_dxFactory4; }
 	ID3D12CommandQueue* getQueue() const { return m_dxCommandQueue; }
 
 private:

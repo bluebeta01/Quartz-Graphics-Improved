@@ -3,7 +3,6 @@
 #include <vector>
 #include "device.h"
 #include "framebuffer.h"
-#include "descheap.h"
 
 struct SwapchainCreateInfo
 {
@@ -13,41 +12,36 @@ struct SwapchainCreateInfo
 	int textureArraySize;
 	int frameCount;
 	void* renderSurface;
-	std::shared_ptr<DescriptorHeap> depthStencilViewHeap;
-	std::shared_ptr<DescriptorHeap> renderTargetViewHeap;
 };
 
 class Swapchain : Resource
 {
 public:
-	Swapchain(const SwapChainCreateInfo& createInfo) :
+	Swapchain(const SwapchainCreateInfo& createInfo) :
 		m_device(createInfo.device), m_width(createInfo.width), m_height(createInfo.height),
-		m_textureArraySize(createInfo.textureArraySize), m_frameCount(createInfo.frameCount),
-		m_depthStencilViewHeap(createInfo.depthStencilViewHeap), m_renderTargetViewHeap(createInfo.renderTargetViewHeap)
+		m_textureArraySize(createInfo.textureArraySize), m_frameCount(createInfo.frameCount)
 	{}
 
+	std::shared_ptr<Swapchain> create(const SwapchainCreateInfo& createInfo);
 	virtual std::shared_ptr<Framebuffer> acquireNextFrame() = 0;
 	virtual void waitForFrame() = 0;
 	virtual void releaseFrame() = 0;
+	virtual void present() = 0;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }
 	int getWidth() const { return m_width; }
 	int getHeight() const { return m_height; }
 	int getTextureArraySize() const { return m_textureArraySize; }
 	int getFramecount() const { return m_frameCount; }
-	std::shared_ptr<DescriptorHeap> getDepthStencilViewHeap() const { return m_depthStencilViewHeap; }
-	std::shared_ptr<DescriptorHeap> getRenderTargetViewHeap() const { return m_renderTargetViewHeap; }
 	int getFrameIndex() const { return m_frameIndex; }
-	const std::vector<std::shared_ptr<Framebuffer>>& m_framebuffers;
+	const std::vector<std::shared_ptr<Framebuffer>>& getFramebuffers() const { return m_framebuffers; }
 
-private:
+protected:
 	std::shared_ptr<Device> m_device;
-	int m_width;
-	int m_height;
-	int m_textureArraySize;
-	int m_frameCount;
-	std::shared_ptr<DescriptorHeap> m_depthStencilViewHeap;
-	std::shared_ptr<DescriptorHeap> m_renderTargetViewHeap;
-	int m_frameIndex;
+	int m_width = 0;
+	int m_height = 0;
+	int m_textureArraySize = 0;
+	int m_frameCount = 0;
+	int m_frameIndex = 0;
 	std::vector<std::shared_ptr<Framebuffer>> m_framebuffers;
 };

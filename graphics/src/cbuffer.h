@@ -2,14 +2,12 @@
 #include <memory>
 #include <vector>
 #include "device.h"
-#include "descheap.h"
 #include "bindabledescriptions.h"
 #include "graphicsresource.h"
 
 struct CBufferCreateInfo
 {
 	std::shared_ptr<Device> device;
-	std::shared_ptr<DescriptorHeap> descriptorHeap;
 	int size;
 };
 
@@ -17,16 +15,15 @@ class CBuffer : public Resource
 {
 public:
 	CBuffer(const CBufferCreateInfo& createInfo) :
-		m_device(createInfo.device), m_descriptorHeap(createInfo.descriptorHeap), m_size(createInfo.size)
+		m_device(createInfo.device), m_size(createInfo.size)
 	{}
 
+	std::shared_ptr<CBuffer> create(const CBufferCreateInfo& createInfo);
 	virtual void bufferData(void* data, int dataSize) = 0;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }
-	std::shared_ptr<DescriptorHeap> getDescriptorHeap() const { return m_descriptorHeap; }
 	int getSize() const { return m_size; }
 protected:
 	std::shared_ptr<Device> m_device;
-	std::shared_ptr<DescriptorHeap> m_descriptorHeap;
 	int m_size;
 };

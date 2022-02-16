@@ -25,7 +25,7 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 
 	D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
 	featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-	if (FAILED(device.m_dxDevice->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+	if (FAILED(((ID3D12Device*)m_device->getNativeResource())->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
 		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 	
 	CD3DX12_DESCRIPTOR_RANGE1 cbvRange = {};
@@ -79,7 +79,7 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-	psoDesc.pRootSignature = m_dxRootSignature;
+	psoDesc.pRootSignature = m_rootSignature;
 	psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader);
 	psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader);
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -177,4 +177,7 @@ void DxPipeline::reflectShaders(ID3DBlob* vertexShader, ID3DBlob* pixelShader)
 
 	m_bindables.insert(m_bindables.end(), cBuffers.begin(), cBuffers.end());
 	m_bindables.insert(m_bindables.end(), textures.begin(), textures.end());
+
+	m_cBufferCount = cBuffers.size();
+	m_textureCount = textures.size();
 }

@@ -13,11 +13,14 @@ public:
 	LONG_PTR getSlicePitch() const;
 
 	ID3D12Resource* getTexture() const { return m_texture; }
+	ID3D12Resource* getUploadBuffer() const { return m_uploadBuffer; }
 	void setTexture(ID3D12Resource* texture) { m_texture = texture; }
+	int getHeapIndex() const { return m_heapIndex; }
+	D3D12_SUBRESOURCE_DATA& getSubresourceData() { return m_subresourceData; }
 
 private:
 	ID3D12Resource* m_texture = nullptr;
 	ID3D12Resource* m_uploadBuffer = nullptr;
-	D3D12_SUBRESOURCE_DATA m_textureData = {};
 	int m_heapIndex = 0;
+	D3D12_SUBRESOURCE_DATA m_subresourceData = {};
 };

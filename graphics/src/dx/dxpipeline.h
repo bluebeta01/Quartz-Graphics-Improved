@@ -9,6 +9,7 @@ class DxPipeline : public Pipeline
 public:
 	DxPipeline(const PipelineCreateInfo& createInfo);
 
+	NativeResource getNativeResource() const { return m_pipelineState; }
 	ID3D12RootSignature* getRootSignature() const { return m_rootSignature; }
 	ID3D12PipelineState* getPipelineState() const { return m_pipelineState; }
 

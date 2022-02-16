@@ -1,8 +1,9 @@
 #include "framebuffer.h"
 
-Framebuffer::Framebuffer(int textureCount)
+Framebuffer::Framebuffer(const FramebufferCreateInfo& createInfo) :
+	m_device(createInfo.device), m_textures(*createInfo.textures)
 {
-	m_textures.resize(textureCount);
+	
 }
 
 void Framebuffer::setTexture(int textureIndex, std::shared_ptr<Texture2D> texture)
