@@ -10,7 +10,6 @@ struct CBufferCreateInfo
 {
 	std::shared_ptr<Device> device;
 	std::shared_ptr<DescriptorHeap> descriptorHeap;
-	std::shared_ptr<ShaderCBufferDescription> bufferDescription;
 	int size;
 };
 
@@ -18,8 +17,7 @@ class CBuffer : public Resource
 {
 public:
 	CBuffer(const CBufferCreateInfo& createInfo) :
-		m_device(createInfo.device), m_descriptorHeap(createInfo.descriptorHeap), m_size(createInfo.size),
-		m_bufferDescription(createInfo.bufferDescription)
+		m_device(createInfo.device), m_descriptorHeap(createInfo.descriptorHeap), m_size(createInfo.size)
 	{}
 
 	virtual void bufferData(void* data, int dataSize) = 0;
@@ -31,5 +29,4 @@ protected:
 	std::shared_ptr<Device> m_device;
 	std::shared_ptr<DescriptorHeap> m_descriptorHeap;
 	int m_size;
-	std::shared_ptr<ShaderCBufferDescription> m_bufferDescription;
 };

@@ -1,8 +1,8 @@
 #include "pipeline.h"
 
-std::shared_ptr<ShaderCBufferDescription> Pipeline::findCBufferDescriptionByName(std::string& name) const
+std::shared_ptr<ShaderBindableDescription> Pipeline::findBindableDescriptionByName(std::string& name) const
 {
-	for (auto& pair : m_bufferDescriptions)
-		if (pair.second->getName() == name)
-			return pair.second;
+	for (auto& bindable : m_bindables)
+		if (bindable->name == name)
+			return bindable;
 }

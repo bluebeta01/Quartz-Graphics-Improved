@@ -22,14 +22,12 @@ public:
 		m_device(createInfo.device)
 	{}
 
-	std::shared_ptr<ShaderCBufferDescription> findCBufferDescriptionByName(std::string& name) const;
+	std::shared_ptr<ShaderBindableDescription> findBindableDescriptionByName(std::string& name) const;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }
-	const std::unordered_map<int, std::shared_ptr<ShaderCBufferDescription>>& getCBufferDescriptions() const { return m_bufferDescriptions; }
-	const std::vector<ShaderBindableDescription>& getShaderBindableDescriptions() const { return m_shaderBindableDescriptions; }
+	const std::vector<std::shared_ptr<ShaderBindableDescription>>& getShaderBindableDescriptions() const { return m_bindables; }
 
 protected:
 	std::shared_ptr<Device> m_device;
-	std::unordered_map<int, std::shared_ptr<ShaderCBufferDescription>> m_bufferDescriptions;
-	std::vector<ShaderBindableDescription> m_shaderBindableDescriptions;
+	std::vector<std::shared_ptr<ShaderBindableDescription>> m_bindables;
 };

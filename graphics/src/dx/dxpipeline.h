@@ -15,6 +15,8 @@ public:
 private:
 	ID3D12RootSignature* m_rootSignature = nullptr;
 	ID3D12PipelineState* m_pipelineState = nullptr;
+	int m_cBufferCount = 0;
+	int m_textureCount = 0;
 
 	void reflectShaders(ID3DBlob* vertexShader, ID3DBlob* pixelShader);
 };
