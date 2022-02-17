@@ -5,6 +5,8 @@
 #include "dxpipeline.h"
 #include "dxcbuffer.h"
 #include "dxvbuffer.h"
+#include <iostream>
+#include <assert.h>
 
 DxRender3D::DxRender3D(std::shared_ptr<Device> device) :
 	Render3D(device)
@@ -18,12 +20,16 @@ void DxRender3D::beginFrame(std::shared_ptr<Framebuffer> framebuffer)
 
 	std::shared_ptr<DxFramebuffer> dxfb = std::static_pointer_cast<DxFramebuffer>(m_currentFramebuffer);
 
-	if(m_commandList == nullptr)
+	if (m_commandList == nullptr)
+	{
 		((DxDevice*)m_device.get())->getDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, dxfb->getAllocator(), nullptr, IID_PPV_ARGS(&m_commandList));
+		m_commandList->Close();
+	}
 
-
-	dxfb->getAllocator()->Reset();
+	HRESULT r = dxfb->getAllocator()->Reset();
+	assert(r == S_OK);
 	m_commandList->Reset(dxfb->getAllocator(), nullptr);
+	
 
 	DxTexture2D* rtTexture = ((DxTexture2D*)framebuffer->getTextures()[0].get());
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = ((DxDevice*)m_device.get())->m_cpuRtvHeap->getHandleOfIndex(rtTexture->getHeapIndex());
@@ -109,7 +115,8 @@ void DxRender3D::endFrame()
 
 	ID3D12CommandList* renderCommandList[] = { m_commandList };
 	((DxDevice*)m_device.get())->getQueue()->ExecuteCommandLists(1, renderCommandList);
-	((DxDevice*)m_device.get())->getQueue()->Signal(dxfb->getFence(), 0);
+	dxfb->incrementFenceValue();
+	((DxDevice*)m_device.get())->getQueue()->Signal(dxfb->getFence(), dxfb->getFenceValue());
 }
 
 void DxRender3D::uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize)

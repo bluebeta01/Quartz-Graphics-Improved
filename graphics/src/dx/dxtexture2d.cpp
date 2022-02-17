@@ -18,21 +18,31 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 		textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
 		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
+		D3D12_CLEAR_VALUE clearValue;
+		clearValue.Color[0] = 0;
+		clearValue.Color[1] = 0.2f;
+		clearValue.Color[2] = 0.4f;
+		clearValue.Color[3] = 1;
+		clearValue.DepthStencil.Depth = 1;
+		clearValue.DepthStencil.Stencil = 0;
 
 		if (m_type == TextureType::IMAGE)
 		{
+			clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 			state = D3D12_RESOURCE_STATE_COPY_DEST;
 		}
 		if (m_type == TextureType::DEPTH_STENCIL)
 		{
+			clearValue.Format = DXGI_FORMAT_D32_FLOAT;
 			textureDesc.Format = DXGI_FORMAT_D32_FLOAT;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 			state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		}
 		if (m_type == TextureType::RENDER_TARGET)
 		{
+			clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 			state = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -44,7 +54,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			D3D12_HEAP_FLAG_NONE,
 			&textureDesc,
 			state,
-			nullptr,
+			&clearValue,
 			IID_PPV_ARGS(&m_texture)
 		);
 	}

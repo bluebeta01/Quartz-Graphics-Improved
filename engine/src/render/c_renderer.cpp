@@ -100,6 +100,7 @@ void Renderer::beginRender()
 	std::shared_ptr<Framebuffer> fb = s_swapchain->acquireNextFrame();
 	s_swapchain->waitForFrame();
 	s_render3d->beginFrame(fb);
+	clear();
 }
 
 void Renderer::endRender()

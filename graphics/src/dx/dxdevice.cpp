@@ -2,7 +2,7 @@
 
 DxDevice::DxDevice()
 {
-    bool dxDebug = false;
+    bool dxDebug = true;
     UINT factoryFlags = 0;
     if (dxDebug)
     {

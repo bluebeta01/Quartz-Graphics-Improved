@@ -1,5 +1,6 @@
 #include "dxcpudescheap.h"
 #include "dxdevice.h"
+#include <assert.h>
 
 DxCPUDescriptorHeap::DxCPUDescriptorHeap(ID3D12Device* device, DxDescriptorHeapType type) :
 	m_device(device), m_type(type)
@@ -56,8 +57,15 @@ void DxCPUDescriptorHeap::createHeap()
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.NumDescriptors = 100;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	if(m_type == DxDescriptorHeapType::CBV_SRV_UAV)
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	if(m_type == DxDescriptorHeapType::DSV)
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	if(m_type == DxDescriptorHeapType::RTV)
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 
-	m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap));
+	HRESULT r = m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap));
+	assert(r == S_OK);
 
 	m_heaps.push_back(heap);
 }

@@ -1,6 +1,8 @@
 #include "dxswapchain.h"
 #include "dxdevice.h"
 #include "dxframebuffer.h"
+#include <iostream>
+#include <thread>
 
 DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	Swapchain(createInfo)
@@ -77,12 +79,11 @@ std::shared_ptr<Framebuffer> DxSwapchain::acquireNextFrame()
 void DxSwapchain::waitForFrame()
 {
 	std::shared_ptr<DxFramebuffer> framebuffer = std::static_pointer_cast<DxFramebuffer>(m_framebuffers[m_frameIndex]);
-	if (framebuffer->getFence()->GetCompletedValue() != 0)
+	if (framebuffer->getFence()->GetCompletedValue() <= framebuffer->getFenceValue())
 	{
-		framebuffer->getFence()->SetEventOnCompletion(0, framebuffer->getReadyEvent());
-		WaitForSingleObjectEx(framebuffer->getReadyEvent(), INFINITE, FALSE);
+		framebuffer->getFence()->SetEventOnCompletion(framebuffer->getFenceValue(), framebuffer->getReadyEvent());
+		WaitForSingleObject(framebuffer->getReadyEvent(), INFINITE);
 	}
-	framebuffer->getFence()->Signal(1);
 }
 
 void DxSwapchain::releaseFrame()

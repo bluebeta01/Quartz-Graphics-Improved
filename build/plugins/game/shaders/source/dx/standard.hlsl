@@ -9,7 +9,7 @@ cbuffer matracies : register(b0)
 	float3x3 normalMatrix;
 };
 
-cbuffer testbuffer : register(b3)
+cbuffer testbuffer : register(b1)
 {
 	float4x4 nothingfloat;
 };
