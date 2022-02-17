@@ -24,7 +24,7 @@ public:
 	{}
 
 	static std::shared_ptr<Pipeline> create(const PipelineCreateInfo& createInfo);
-	std::shared_ptr<ShaderBindableDescription> findBindableDescriptionByName(std::string& name) const;
+	std::shared_ptr<ShaderBindableDescription> findBindableDescriptionByName(const std::string& name) const;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }
 	const std::vector<std::shared_ptr<ShaderBindableDescription>>& getShaderBindableDescriptions() const { return m_bindables; }

@@ -12,7 +12,7 @@ public:
 	int getNextIndex();
 	int getCurrentIndex();
 	int requestSpace(int numOfIndexes);
-	CD3DX12_CPU_DESCRIPTOR_HANDLE getCPUHandleOfIndex (int index) const;
+	D3D12_CPU_DESCRIPTOR_HANDLE getCPUHandleOfIndex (int index) const;
 	CD3DX12_GPU_DESCRIPTOR_HANDLE getGPUHandleOfIndex (int index) const;
 
 	DxDescriptorHeapType getType() const { return m_type; }

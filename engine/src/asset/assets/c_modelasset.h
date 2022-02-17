@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <graphics.h>
 #include "asset/assets/c_asset.h"
 #include "asset/assets/c_materialasset.h"
 #include "common.h"
@@ -23,7 +24,7 @@ class ModelAsset : public Asset
 public:
 	ModelData m_modelData;
 	std::shared_ptr<MaterialAsset> m_material;
-	//std::shared_ptr<VBuffer> m_vBuffer;
+	std::shared_ptr<VBuffer> m_vBuffer;
 
 	ModelAsset(const std::string& name, const std::string& absPath) : Asset(Asset::Type::MODEL, name, absPath), m_modelData({}) {}
 	void load(std::shared_ptr<Asset> asset);

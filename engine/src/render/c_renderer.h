@@ -15,6 +15,7 @@ public:
 	static std::shared_ptr<Device> s_device;
 	static std::shared_ptr<Swapchain> s_swapchain;
 	static std::shared_ptr<Render3D> s_render3d;
+	static std::shared_ptr<CBuffer> s_testBuffer;
 
 	static void initialize();
 	static void deinitialize();

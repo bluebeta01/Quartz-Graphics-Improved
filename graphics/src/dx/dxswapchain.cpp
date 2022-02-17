@@ -1,8 +1,6 @@
 #include "dxswapchain.h"
 #include "dxdevice.h"
 #include "dxframebuffer.h"
-#include <iostream>
-#include <thread>
 
 DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	Swapchain(createInfo)

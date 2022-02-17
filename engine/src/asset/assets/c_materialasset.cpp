@@ -98,6 +98,8 @@ bool MaterialAsset::childrenLoaded()
 	else
 		return false;
 
+	isLoaded &= m_material->m_pipeline != nullptr;
+
 	return isLoaded;
 }
 

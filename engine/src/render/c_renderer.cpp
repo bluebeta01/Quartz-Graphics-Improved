@@ -14,6 +14,7 @@ ThreadPool Renderer::s_threadPool;
 std::shared_ptr<Device> Renderer::s_device;
 std::shared_ptr<Swapchain> Renderer::s_swapchain;
 std::shared_ptr<Render3D> Renderer::s_render3d;
+std::shared_ptr<CBuffer> Renderer::s_testBuffer;
 
 Renderer::Renderer()
 {
@@ -38,6 +39,11 @@ void Renderer::initialize()
 	s_swapchain = Swapchain::create(info);
 
 	s_render3d = Render3D::create(s_device);
+
+	CBufferCreateInfo bufferCreateInfo = {};
+	bufferCreateInfo.device = s_device;
+	bufferCreateInfo.size = sizeof(float) * 57;
+	s_testBuffer = CBuffer::create(bufferCreateInfo);
 }
 
 void Renderer::deinitialize()
@@ -58,7 +64,7 @@ void Renderer::uploadAsset(std::shared_ptr<Asset> asset)
 	case Asset::Type::MODEL:
 	{
 		std::shared_ptr<ModelAsset> model = std::dynamic_pointer_cast<ModelAsset>(asset);
-		//model->m_vBuffer->bufferData(model->m_modelData.rawModelData->data(), sizeof(float) * model->m_modelData.rawModelData->size());
+		model->m_vBuffer->bufferData(model->m_modelData.rawModelData->data(), sizeof(float) * model->m_modelData.rawModelData->size());
 		break;
 	}
 	case Asset::Type::TEXTURE2D:
@@ -86,6 +92,14 @@ void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& t
 	glm::mat4 normalMatrix = glm::transpose(glm::inverse(modelMatrix));
 
 	glm::mat4 mvp[] = { modelMatrix, viewMatrix, projectionMatrix, normalMatrix };
+	s_testBuffer->bufferData(mvp, sizeof(float) * 57);
+
+	std::shared_ptr<ShaderBindableDescription> cBufferBindableDesc =
+		model->m_material->m_material->m_pipeline->findBindableDescriptionByName("matracies");
+
+	s_render3d->bindPipeline(model->m_material->m_material->m_pipeline);
+	s_render3d->bindCBuffer(s_testBuffer, cBufferBindableDesc->tableIndex);
+	s_render3d->renderVBuffer(model->m_vBuffer);
 	//memcpy_s(s_cbuffer->getAddress(), sizeof(glm::mat4) * 4, mvp, sizeof(glm::mat4) * 4);
 
 	//std::shared_ptr<TextureAsset> texture = std::static_pointer_cast<TextureAsset>(model->m_material->m_properties["diffuse"].m_value);
