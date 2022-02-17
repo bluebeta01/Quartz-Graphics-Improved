@@ -54,7 +54,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			D3D12_HEAP_FLAG_NONE,
 			&textureDesc,
 			state,
-			&clearValue,
+			(m_type == TextureType::IMAGE ? nullptr : &clearValue),
 			IID_PPV_ARGS(&m_texture)
 		);
 	}
@@ -77,7 +77,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		if (m_arraySize == 1)
 		{
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;

@@ -72,11 +72,7 @@ void DxRender3D::bindPipeline(std::shared_ptr<Pipeline> pipeline)
 	ID3D12DescriptorHeap* heaps[] = { ((DxDevice*)m_device.get())->m_gpuCbvSrvUavHeap->getHeap() };
 	m_commandList->SetDescriptorHeaps(1, heaps);
 
-	CD3DX12_GPU_DESCRIPTOR_HANDLE cbvTableHandle = ((DxDevice*)m_device.get())->m_gpuCbvSrvUavHeap->getGPUHandleOfIndex(m_tablesStartingIndex);
-	CD3DX12_GPU_DESCRIPTOR_HANDLE srvTableHandle = ((DxDevice*)m_device.get())->m_gpuCbvSrvUavHeap->getGPUHandleOfIndex(m_tablesStartingIndex + m_currentPipeline->getCBufferCount());
-
-	//m_commandList->SetGraphicsRootDescriptorTable(0, cbvTableHandle);
-	//m_commandList->SetGraphicsRootDescriptorTable(1, srvTableHandle);
+	
 }
 
 void DxRender3D::bindCBuffer(std::shared_ptr<CBuffer> cbuffer, int tableIndex)
@@ -85,14 +81,7 @@ void DxRender3D::bindCBuffer(std::shared_ptr<CBuffer> cbuffer, int tableIndex)
 	CD3DX12_CPU_DESCRIPTOR_HANDLE cbvCpuHeapHandle = ((DxDevice*)m_device.get())->m_cpuCbvSrvUavHeap->getHandleOfIndex(cb->getHeapIndex());
 	D3D12_CPU_DESCRIPTOR_HANDLE cbvGpuHeapHandle = ((DxDevice*)m_device.get())->m_gpuCbvSrvUavHeap->getCPUHandleOfIndex(m_tablesStartingIndex + tableIndex);
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE src[] = { cbvCpuHeapHandle };
-	D3D12_CPU_DESCRIPTOR_HANDLE dest[] = { cbvGpuHeapHandle };
-
-	//((ID3D12Device*)m_device.get())->CopyDescriptorsSimple(1, cbvGpuHeapHandle, cbvCpuHeapHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-	((ID3D12Device*)m_device.get())->CopyDescriptors(
-		1, dest, nullptr, 1, src, nullptr, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-	);
+	((ID3D12Device*)m_device->getNativeResource())->CopyDescriptorsSimple(1, cbvGpuHeapHandle, cbvCpuHeapHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 void DxRender3D::bindTexture(std::shared_ptr<Texture2D> texture, int tableIndex)
@@ -101,12 +90,26 @@ void DxRender3D::bindTexture(std::shared_ptr<Texture2D> texture, int tableIndex)
 	CD3DX12_CPU_DESCRIPTOR_HANDLE srvCpuHeapHandle = ((DxDevice*)m_device.get())->m_cpuCbvSrvUavHeap->getHandleOfIndex(dxtex->getHeapIndex());
 	D3D12_CPU_DESCRIPTOR_HANDLE srvGpuHeapHandle = ((DxDevice*)m_device.get())->m_gpuCbvSrvUavHeap->getCPUHandleOfIndex(m_tablesStartingIndex + m_currentPipeline->getCBufferCount() + tableIndex);
 
-	((ID3D12Device*)m_device.get())->CopyDescriptorsSimple(1, srvGpuHeapHandle, srvCpuHeapHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	((ID3D12Device*)m_device->getNativeResource())->CopyDescriptorsSimple(1, srvGpuHeapHandle, srvCpuHeapHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
+void DxRender3D::bindResources()
+{
+	CD3DX12_GPU_DESCRIPTOR_HANDLE cbvTableHandle = ((DxDevice*)m_device.get())->m_gpuCbvSrvUavHeap->getGPUHandleOfIndex(m_tablesStartingIndex);
+	CD3DX12_GPU_DESCRIPTOR_HANDLE srvTableHandle = ((DxDevice*)m_device.get())->m_gpuCbvSrvUavHeap->getGPUHandleOfIndex(m_tablesStartingIndex + m_currentPipeline->getCBufferCount());
+
+	DxPipeline* pipeline = (DxPipeline*)m_currentPipeline.get();
+
+	if(pipeline->getCBufferCount() > 0)
+		m_commandList->SetGraphicsRootDescriptorTable(pipeline->getCBVRootIndex(), cbvTableHandle);
+	if(pipeline->getTextureCount() > 0)
+		m_commandList->SetGraphicsRootDescriptorTable(pipeline->getSRVRootIndex(), srvTableHandle);
 }
 
 void DxRender3D::renderVBuffer(std::shared_ptr<VBuffer> vBuffer)
 {
-	m_commandList->IASetVertexBuffers(0, 1, &((DxVBuffer*)vBuffer.get())->getBufferView());
+	D3D12_VERTEX_BUFFER_VIEW view = ((DxVBuffer*)vBuffer.get())->getBufferView();
+	m_commandList->IASetVertexBuffers(0, 1, &view);
 	m_commandList->DrawInstanced(vBuffer->getVertexCount(), 1, 0, 0);
 }
 

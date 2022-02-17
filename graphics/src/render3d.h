@@ -21,6 +21,7 @@ public:
 	virtual void bindPipeline(std::shared_ptr<Pipeline> pipeline) = 0;
 	virtual void bindCBuffer(std::shared_ptr<CBuffer> cbuffer, int tableIndex) = 0;
 	virtual void bindTexture(std::shared_ptr<Texture2D> texture, int tableIndex) = 0;
+	virtual void bindResources() = 0;
 	virtual void renderVBuffer(std::shared_ptr<VBuffer> vBuffer) = 0;
 	virtual void endFrame() = 0;
 	virtual void uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize) = 0;

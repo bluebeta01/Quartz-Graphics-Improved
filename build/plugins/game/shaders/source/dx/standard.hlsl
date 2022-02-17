@@ -51,6 +51,7 @@ float4 PShader(float4 position : SV_POSITION, float3 pixelPos : POSITION, float3
     // Sample the pixel color from the texture using the sampler at this texture coordinate location.
     textureColor = shaderTexture.Sample(SampleType, tex);
 	
+	//return float4(result, 1.0f);
     return float4(result, 1.0f) * textureColor;
 	
 	

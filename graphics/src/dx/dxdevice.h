@@ -19,6 +19,8 @@ public:
 
 	NativeResource getNativeResource() const { return m_device; }
 	void waitForIdle();
+	void uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize);
+	bool textureUploadReady();
 
 	ID3D12Device* getDevice() const { return m_device; }
 	IDXGIFactory4* getFactory() const { return m_dxFactory4; }
@@ -32,6 +34,11 @@ private:
 	ID3D12CommandQueue* m_dxCommandQueue = nullptr;
 	ID3D12Fence* m_dxIdleFence = nullptr;
 	HANDLE m_dxIdleFenceEvent = {};
+
+	ID3D12GraphicsCommandList* m_textureUploadCommandList = nullptr;
+	ID3D12CommandAllocator* m_textureUploadCommandAllocator = nullptr;
+	ID3D12Fence* m_textureUploadFence = nullptr;
+	int m_textureUploadFenceValue = 0;
 
 	void GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter);
 };

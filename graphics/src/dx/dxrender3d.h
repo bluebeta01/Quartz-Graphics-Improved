@@ -15,6 +15,7 @@ public:
 	void bindPipeline(std::shared_ptr<Pipeline> pipeline);
 	void bindCBuffer(std::shared_ptr<CBuffer> cbuffer, int tableIndex);
 	void bindTexture(std::shared_ptr<Texture2D> texture, int tableIndex);
+	void bindResources();
 	void renderVBuffer(std::shared_ptr<VBuffer> vBuffer);
 	void endFrame();
 	void uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize);

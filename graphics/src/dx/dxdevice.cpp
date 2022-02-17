@@ -1,4 +1,5 @@
 #include "dxdevice.h"
+#include "dxtexture2d.h"
 
 DxDevice::DxDevice()
 {
@@ -24,6 +25,11 @@ DxDevice::DxDevice()
     m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_dxIdleFence));
     m_dxIdleFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
+    m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_textureUploadCommandAllocator));
+    m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_textureUploadCommandAllocator, nullptr, IID_PPV_ARGS(&m_textureUploadCommandList));
+    m_textureUploadCommandList->Close();
+    m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_textureUploadFence));
+
     m_cpuCbvSrvUavHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::CBV_SRV_UAV);
     m_cpuDsvHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::DSV);
     m_cpuRtvHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::RTV);
@@ -36,6 +42,30 @@ void DxDevice::waitForIdle()
     m_dxIdleFence->SetEventOnCompletion(1, m_dxIdleFenceEvent);
     WaitForSingleObjectEx(m_dxIdleFenceEvent, INFINITE, FALSE);
     m_dxIdleFence->Signal(0);
+}
+
+void DxDevice::uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize)
+{
+    DxTexture2D* dxtex = (DxTexture2D*)texture.get();
+    dxtex->getSubresourceData().pData = data;
+    dxtex->getSubresourceData().RowPitch = dxtex->getRowPitch();
+    dxtex->getSubresourceData().SlicePitch = dxtex->getSlicePitch();
+
+    m_textureUploadCommandAllocator->Reset();
+    m_textureUploadCommandList->Reset(m_textureUploadCommandAllocator, nullptr);
+    UpdateSubresources(m_textureUploadCommandList, dxtex->getTexture(), dxtex->getUploadBuffer(), 0, 0, 1, &dxtex->getSubresourceData());
+    m_textureUploadCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(dxtex->getTexture(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+    m_textureUploadCommandList->Close();
+
+    ID3D12CommandList* renderCommandList[] = { m_textureUploadCommandList };
+    m_dxCommandQueue->ExecuteCommandLists(1, renderCommandList);
+    m_textureUploadFenceValue++;
+    m_dxCommandQueue->Signal(m_textureUploadFence, m_textureUploadFenceValue);
+}
+
+bool DxDevice::textureUploadReady()
+{
+    return m_textureUploadFence->GetCompletedValue() >= m_textureUploadFenceValue;
 }
 
 void DxDevice::GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter)

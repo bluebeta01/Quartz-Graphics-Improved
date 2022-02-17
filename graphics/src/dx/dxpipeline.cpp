@@ -40,7 +40,14 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 	CD3DX12_ROOT_PARAMETER1 srvRootParams = {};
 	srvRootParams.InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-	CD3DX12_ROOT_PARAMETER1 rootParameters[] = { cbvRootParams, srvRootParams };
+	std::vector<CD3DX12_ROOT_PARAMETER1> params;
+	if (m_cBufferCount != 0)
+		params.push_back(cbvRootParams);
+	m_cbvRootIndex = params.size() - 1;
+	if (m_textureCount != 0)
+		params.push_back(srvRootParams);
+	m_srvRootIndex = params.size() - 1;
+
 
 	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -61,7 +68,7 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
+	rootSignatureDesc.Init_1_1(params.size(), params.data(), 1, &sampler, rootSignatureFlags);
 
 	ID3DBlob* signature;
 	ID3DBlob* error;
@@ -83,12 +90,12 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 	psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader);
 	psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader);
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); // a default depth stencil state

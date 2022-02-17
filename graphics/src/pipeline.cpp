@@ -5,4 +5,5 @@ std::shared_ptr<ShaderBindableDescription> Pipeline::findBindableDescriptionByNa
 	for (auto bindable : m_bindables)
 		if (bindable->name == name)
 			return bindable;
+	return nullptr;
 }

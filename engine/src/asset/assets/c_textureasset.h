@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <graphics.h>
 #include "asset/assets/c_asset.h"
 #include "render/c_renderer.h"
 
@@ -19,7 +20,7 @@ public:
 	unsigned int m_width;
 	unsigned int m_height;
 	TextureData m_textureData;
-	//std::shared_ptr<Texture2D> m_texture2D;
+	std::shared_ptr<Texture2D> m_texture2D;
 	TextureAsset(const std::string& name, const std::string& abolsutePath);
 	void load(std::shared_ptr<Asset> asset);
 	static void loadCallback(std::shared_ptr<void> callbackArgs);

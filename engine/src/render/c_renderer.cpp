@@ -71,6 +71,8 @@ void Renderer::uploadAsset(std::shared_ptr<Asset> asset)
 	{
 		std::shared_ptr<TextureAsset> texture = std::dynamic_pointer_cast<TextureAsset>(asset);
 		//s_render3D->scheduleTextureUpload(texture->m_texture2D);
+		while (!Renderer::s_device->textureUploadReady());
+		Renderer::s_device->uploadTexture(texture->m_texture2D, texture->m_textureData.rawTextureData->data(), texture->m_textureData.rawTextureData->size());
 		break;
 	}
 	default:
@@ -82,6 +84,8 @@ void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& t
 {
 	if (!model || !model->childrenLoaded())
 		return;
+
+	
 
 	glm::mat4 projectionMatrix = glm::perspectiveFovLH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
 	glm::mat4 viewMatrix = glm::identity<glm::mat4>();
@@ -95,10 +99,18 @@ void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& t
 	s_testBuffer->bufferData(mvp, sizeof(float) * 57);
 
 	std::shared_ptr<ShaderBindableDescription> cBufferBindableDesc =
-		model->m_material->m_material->m_pipeline->findBindableDescriptionByName("matracies");
+		model->m_material->m_shader->m_pipeline->findBindableDescriptionByName("matracies");
 
-	s_render3d->bindPipeline(model->m_material->m_material->m_pipeline);
+	std::shared_ptr<ShaderBindableDescription> textureBindableDesc =
+		model->m_material->m_shader->m_pipeline->findBindableDescriptionByName("shaderTexture");
+
+	std::shared_ptr<TextureAsset> diffuse = std::static_pointer_cast<TextureAsset>(model->m_material->m_material->getProperty("diffuse").m_value);
+
+	s_render3d->bindPipeline(model->m_material->m_shader->m_pipeline);
 	s_render3d->bindCBuffer(s_testBuffer, cBufferBindableDesc->tableIndex);
+	if(textureBindableDesc != nullptr)
+		s_render3d->bindTexture(diffuse->m_texture2D, textureBindableDesc->tableIndex);
+	s_render3d->bindResources();
 	s_render3d->renderVBuffer(model->m_vBuffer);
 	//memcpy_s(s_cbuffer->getAddress(), sizeof(glm::mat4) * 4, mvp, sizeof(glm::mat4) * 4);
 
@@ -114,12 +126,13 @@ void Renderer::beginRender()
 	std::shared_ptr<Framebuffer> fb = s_swapchain->acquireNextFrame();
 	s_swapchain->waitForFrame();
 	s_render3d->beginFrame(fb);
+	s_render3d->setViewport(0, 0, GameWindow::getWidth(), GameWindow::getHeight());
+	s_render3d->setScissorRect(0, 0, GameWindow::getWidth(), GameWindow::getHeight());
 	clear();
 }
 
 void Renderer::endRender()
 {
-	//s_render3D->endFrame(*s_swapChain);
 	s_render3d->endFrame();
 	s_swapchain->present();
 }

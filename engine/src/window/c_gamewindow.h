@@ -6,7 +6,7 @@ namespace Quartz
 class GameWindow
 {
 public:
-	static void initialize(HWND windowHandle = nullptr, int width = 1920, int height = 1080);
+	static void initialize(HWND windowHandle = nullptr, int width = 1280, int height = 720);
 	static void update();
 	static HWND* getHandle();
 	static int getWidth();

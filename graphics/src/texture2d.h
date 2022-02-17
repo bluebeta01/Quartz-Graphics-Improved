@@ -3,7 +3,9 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include "device.h"
+//#include "device.h"
+#include "graphicsresource.h"
+class Device;
 
 enum class TextureType
 {

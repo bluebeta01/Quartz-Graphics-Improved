@@ -36,6 +36,13 @@ void TextureAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 
 	//asset->m_texture2D = Renderer::s_gengine.createTexture2D(asset->m_texture2D, asset->m_width, asset->m_height);
 	//asset->m_texture2D->bufferData(asset->m_textureData.rawTextureData.get());
+	Texture2DCreateInfo info = {};
+	info.arraySize = 1;
+	info.device = Renderer::s_device;
+	info.height = asset->m_height;
+	info.width = asset->m_width;
+	info.type = TextureType::IMAGE;
+	asset->m_texture2D = Texture2D::create(info);
 
 	asset->m_loadStatus = Asset::Status::READY_FOR_GPU_UPLOAD;
 }
