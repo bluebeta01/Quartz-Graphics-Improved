@@ -20,7 +20,7 @@ public:
 	static void initialize();
 	static void deinitialize();
 	static void update();
-	static void uploadAsset(std::shared_ptr<Asset> asset);
+	static bool uploadAsset(std::shared_ptr<Asset> asset);
 	static void renderModel(std::shared_ptr<ModelAsset> asset, const Transform& transform);
 	static void beginRender();
 	static void endRender();

@@ -35,10 +35,9 @@ void Engine::initGameLoop()
 
 void Engine::gameLoopBody()
 {
-	static std::shared_ptr<ModelAsset> ball = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(Asset::Type::MODEL, "models/shiba.qmf"));
-	static std::shared_ptr<ModelAsset> light = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(Asset::Type::MODEL, "models/light.qmf"));
-	static std::shared_ptr<ModelAsset> train = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(Asset::Type::MODEL, "models/train.qmf"));
-	static std::shared_ptr<ModelAsset> sphere = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(Asset::Type::MODEL, "models/Woodball.qmf"));
+	static std::shared_ptr<ModelAsset> shiba = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/shiba.qmf"));
+	static std::shared_ptr<ModelAsset> train;
+
 	static Transform ballTransform;
 	ballTransform.position.z = 150;
 
@@ -50,6 +49,11 @@ void Engine::gameLoopBody()
 		long long frameTime1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 		delta = (float)(frameTime1 - oldFrameTime) / 1000.0f;
 		oldFrameTime = frameTime1;
+		static float avg = 0;
+		avg = avg + ((delta - avg) / 10);
+
+		if (delta > avg * 1.5f)
+			QZINFO("Lag Spike: delta-{0}s", delta);
 
 		updateSystems();
 
@@ -63,15 +67,16 @@ void Engine::gameLoopBody()
 			ballTransform.rotateY(5 * delta);
 		}
 
+		if (Input::isKeyDownThisFrame('U'))
+			train = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/train.qmf"));
+
 
 		Renderer::beginRender();
 		static float rot = 0;
 		rot += 1 * delta;
 
-		Renderer::renderModel(ball, ballTransform);
-		Renderer::renderModel(light, ballTransform);
+		Renderer::renderModel(shiba, ballTransform);
 		Renderer::renderModel(train, ballTransform);
-		Renderer::renderModel(sphere, ballTransform);
 		Renderer::endRender();
 		
 	}

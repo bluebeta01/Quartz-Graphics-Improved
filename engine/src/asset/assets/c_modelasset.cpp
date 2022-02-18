@@ -26,44 +26,48 @@ void ModelAsset::loadCallback(std::shared_ptr<void> callbackArguments)
 		return;
 	}
 
-	model->m_modelData.rawModelData = std::make_shared<std::vector<float>>();
-	stream.readInt(&model->m_modelData.qmfVersion);
-	model->m_modelData.modelName = stream.readString();
-	model->m_modelData.materialName = stream.readString();
-	stream.readInt(&model->m_modelData.vertCount);
-	stream.readInt(&model->m_modelData.floatsPerVert);
+	int floatCountPerVertex = 0;
 
-	int floatCount = model->m_modelData.vertCount * model->m_modelData.floatsPerVert;
+	model->m_rawData = std::make_shared<std::vector<float>>();
+	stream.readInt(&model->m_fileVersion);
+	model->m_modelName = stream.readString();
+	model->m_materialName = stream.readString();
+	stream.readInt(&model->m_vertexCount);
+	stream.readInt(&floatCountPerVertex);
+	model->m_vertexSize = floatCountPerVertex * sizeof(float);
 
-	for (int i = 0; i < floatCount; i++)
+	for (int i = 0; i < model->m_vertexCount * floatCountPerVertex; i++)
 	{
 		float currentFloat;
 		stream.readBytes(sizeof(float), &currentFloat);
-		model->m_modelData.rawModelData->push_back(currentFloat);
+		model->m_rawData->push_back(currentFloat);
 	}
 
-	UINT vertexBufferSize = model->m_modelData.vertCount * model->m_modelData.floatsPerVert * sizeof(float);
-	//model->m_vBuffer = Renderer::s_gengine.createVBuffer(vertexBufferSize, sizeof(float) * model->m_modelData.floatsPerVert, model->m_modelData.vertCount);
+	UINT vertexBufferSize = model->m_vertexCount * model->m_vertexSize;
 	
 	VBufferCreateInfo info = {};
 	info.device = Renderer::s_device;
 	info.size = vertexBufferSize;
-	info.stride = model->m_modelData.floatsPerVert * sizeof(float);
-	info.vertexCount = model->m_modelData.vertCount;
+	info.stride = floatCountPerVertex * sizeof(float);
+	info.vertexCount = model->m_vertexCount;
 	model->m_vBuffer = VBuffer::create(info);
 
-	model->m_unloadedDependencies = true;
-	model->m_loadStatus = Asset::Status::READY_FOR_GPU_UPLOAD;
+	model->m_hasDependencies = true;
+	model->m_loadStatus = AssetLoadStatus::READY_FOR_GPU_UPLOAD;
 }
-bool ModelAsset::childrenLoaded()
+void ModelAsset::clearRawData()
 {
-	if (m_loadStatus != Asset::Status::LOADED || m_material == nullptr)
+	m_rawData = nullptr;
+}
+bool ModelAsset::dependenciesLoaded() const
+{
+	if (m_material == nullptr)
 		return false;
-	return m_material->childrenLoaded();
+	return m_material->dependenciesLoaded() & m_loadStatus == AssetLoadStatus::LOADED;
 }
 
 void ModelAsset::loadDependencies()
 {
-	m_material = std::dynamic_pointer_cast<MaterialAsset>(AssetManager::getAsset(Asset::Type::MATERIAL, m_modelData.materialName));
+	m_material = std::dynamic_pointer_cast<MaterialAsset>(AssetManager::getAsset(AssetType::MATERIAL, m_materialName));
 }
 }

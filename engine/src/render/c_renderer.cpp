@@ -56,33 +56,33 @@ void Renderer::update()
 	
 }
 
-void Renderer::uploadAsset(std::shared_ptr<Asset> asset)
+bool Renderer::uploadAsset(std::shared_ptr<Asset> asset)
 {
-	
-	switch (asset->m_type)
+	switch (asset->getType())
 	{
-	case Asset::Type::MODEL:
+	case AssetType::MODEL:
 	{
 		std::shared_ptr<ModelAsset> model = std::dynamic_pointer_cast<ModelAsset>(asset);
-		model->m_vBuffer->bufferData(model->m_modelData.rawModelData->data(), sizeof(float) * model->m_modelData.rawModelData->size());
+		model->getVBuffer()->bufferData(model->getRawData()->data(), model->getRawData()->size() * sizeof(float));
 		break;
 	}
-	case Asset::Type::TEXTURE2D:
+	case AssetType::TEXTURE2D:
 	{
 		std::shared_ptr<TextureAsset> texture = std::dynamic_pointer_cast<TextureAsset>(asset);
-		//s_render3D->scheduleTextureUpload(texture->m_texture2D);
-		while (!Renderer::s_device->textureUploadReady());
-		Renderer::s_device->uploadTexture(texture->m_texture2D, texture->m_textureData.rawTextureData->data(), texture->m_textureData.rawTextureData->size());
+		if (Renderer::s_device->textureUploadReady())
+			Renderer::s_device->uploadTexture(texture->getTexture(), texture->getRawData()->data(), texture->getRawData()->size());
+		else
+			return false;
 		break;
 	}
 	default:
-		return;
+		return true;
 	}
 }
 
 void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& transform)
 {
-	if (!model || !model->childrenLoaded())
+	if (!model || !model->dependenciesLoaded())
 		return;
 
 	
@@ -99,19 +99,20 @@ void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& t
 	s_testBuffer->bufferData(mvp, sizeof(float) * 57);
 
 	std::shared_ptr<ShaderBindableDescription> cBufferBindableDesc =
-		model->m_material->m_shader->m_pipeline->findBindableDescriptionByName("matracies");
+		model->getMaterial()->getShader()->getPipeline()->findBindableDescriptionByName("matracies");
 
 	std::shared_ptr<ShaderBindableDescription> textureBindableDesc =
-		model->m_material->m_shader->m_pipeline->findBindableDescriptionByName("shaderTexture");
+		model->getMaterial()->getShader()->getPipeline()->findBindableDescriptionByName("shaderTexture");
 
-	std::shared_ptr<TextureAsset> diffuse = std::static_pointer_cast<TextureAsset>(model->m_material->m_material->getProperty("diffuse").m_value);
+	std::shared_ptr<TextureAsset> diffuse = std::static_pointer_cast<TextureAsset>(model->getMaterial()->getProperty("diffuse").m_value);
 
-	s_render3d->bindPipeline(model->m_material->m_shader->m_pipeline);
-	s_render3d->bindCBuffer(s_testBuffer, cBufferBindableDesc->tableIndex);
+	s_render3d->bindPipeline(model->getMaterial()->getShader()->getPipeline());
+	if(cBufferBindableDesc != nullptr)
+		s_render3d->bindCBuffer(s_testBuffer, cBufferBindableDesc->tableIndex);
 	if(textureBindableDesc != nullptr)
-		s_render3d->bindTexture(diffuse->m_texture2D, textureBindableDesc->tableIndex);
+		s_render3d->bindTexture(diffuse->getTexture(), textureBindableDesc->tableIndex);
 	s_render3d->bindResources();
-	s_render3d->renderVBuffer(model->m_vBuffer);
+	s_render3d->renderVBuffer(model->getVBuffer());
 	//memcpy_s(s_cbuffer->getAddress(), sizeof(glm::mat4) * 4, mvp, sizeof(glm::mat4) * 4);
 
 	//std::shared_ptr<TextureAsset> texture = std::static_pointer_cast<TextureAsset>(model->m_material->m_properties["diffuse"].m_value);

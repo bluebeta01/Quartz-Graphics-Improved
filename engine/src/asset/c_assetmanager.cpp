@@ -67,13 +67,12 @@ std::string AssetManager::findFile(const std::string& path)
 	return "";
 }
 
-std::shared_ptr<Asset> AssetManager::getAsset(Asset::Type type, const std::string& pluginRelativePath)
+std::shared_ptr<Asset> AssetManager::getAsset(AssetType type, const std::string& pluginRelativePath)
 {
-	
-		auto i = s_assets.find(pluginRelativePath);
-		if (i != s_assets.end())
-			return i->second;
-	
+	auto i = s_assets.find(pluginRelativePath);
+	if (i != s_assets.end())
+		return i->second;
+
 
 	std::string absPath = findFile(pluginRelativePath.c_str());
 	if (absPath == "")
@@ -85,7 +84,7 @@ std::shared_ptr<Asset> AssetManager::getAsset(Asset::Type type, const std::strin
 	//Asset loading dispatch
 	switch (type)
 	{
-	case Asset::Type::TEXT:
+	case AssetType::TEXT:
 	{
 		std::shared_ptr<TextAsset> asset = std::make_shared<TextAsset>(pluginRelativePath, absPath);
 		s_assets[pluginRelativePath] = asset;
@@ -95,7 +94,7 @@ std::shared_ptr<Asset> AssetManager::getAsset(Asset::Type type, const std::strin
 		break;
 	}
 
-	case Asset::Type::TEXTURE2D:
+	case AssetType::TEXTURE2D:
 	{
 		std::shared_ptr<TextureAsset> asset = std::make_shared<TextureAsset>(pluginRelativePath, absPath);
 		s_assets[pluginRelativePath] = asset;
@@ -105,7 +104,7 @@ std::shared_ptr<Asset> AssetManager::getAsset(Asset::Type type, const std::strin
 		break;
 	}
 
-	case Asset::Type::MATERIAL:
+	case AssetType::MATERIAL:
 	{
 		std::shared_ptr<MaterialAsset> asset = std::make_shared<MaterialAsset>(pluginRelativePath, absPath);
 		s_assets[pluginRelativePath] = asset;
@@ -115,7 +114,7 @@ std::shared_ptr<Asset> AssetManager::getAsset(Asset::Type type, const std::strin
 		break;
 	}
 
-	case Asset::Type::MODEL:
+	case AssetType::MODEL:
 	{
 		std::shared_ptr<ModelAsset> asset = std::make_shared<ModelAsset>(pluginRelativePath, absPath);
 		s_assets[pluginRelativePath] = asset;
@@ -125,7 +124,7 @@ std::shared_ptr<Asset> AssetManager::getAsset(Asset::Type type, const std::strin
 		break;
 	}
 
-	case Asset::Type::SHADER:
+	case AssetType::SHADER:
 	{
 		std::shared_ptr<ShaderAsset> asset = std::make_shared<ShaderAsset>(pluginRelativePath, absPath);
 		s_assets[pluginRelativePath] = asset;
@@ -146,51 +145,54 @@ std::shared_ptr<Asset> AssetManager::getAsset(Asset::Type type, const std::strin
 void AssetManager::proccessAssets()
 {
 	auto iter = s_assetsInProgress.begin();
-	while (iter != s_assetsInProgress.end())
+	int size = s_assetsInProgress.size();
+	int i = 0;
+	while (iter != s_assetsInProgress.end() && i < size)
 	{
+		i++;
 		std::shared_ptr<Asset> asset = *iter;
 		
-		if (asset->m_unloadedDependencies)
+		if (asset->m_hasDependencies)
 		{
-			asset->m_unloadedDependencies = false;
+			asset->m_hasDependencies = false;
 			asset->loadDependencies();
 		}
 
-		if (asset->m_loadStatus == Asset::Status::LOADED)
+		if (asset->m_loadStatus == AssetLoadStatus::LOADED)
 		{
 			iter = s_assetsInProgress.erase(iter);
 			continue;
 		}
 
-		if (asset->m_loadStatus == Asset::Status::READY_FOR_GPU_UPLOAD)
+		if (asset->m_loadStatus == AssetLoadStatus::READY_FOR_GPU_UPLOAD)
 		{
 			//TODO: VBuffer uploading isn't scheduled on a command list. It's done here and now,
 			//	which takes a while, so we return in this statement. Change this in future
-			Renderer::uploadAsset(asset);
-			asset->m_loadStatus = Asset::Status::GPU_UPLOAD_REQUESTED;
+			if(Renderer::uploadAsset(asset))
+				asset->m_loadStatus = AssetLoadStatus::GPU_UPLOAD_REQUESTED;
 			iter++;
 			return;
 		}
 
-		if (asset->m_loadStatus == Asset::Status::GPU_UPLOAD_REQUESTED)
+		if (asset->m_loadStatus == AssetLoadStatus::GPU_UPLOAD_REQUESTED)
 		{
-			if (asset->m_type == Asset::Type::MODEL)
+			if (asset->m_type == AssetType::MODEL)
 			{
 				std::shared_ptr<ModelAsset> model = std::static_pointer_cast<ModelAsset>(asset);
-				model->m_loadStatus = Asset::Status::LOADED;
-				//TODO: We're not using upload buffers for models yet. This will likely change in future
-				model->m_modelData.rawModelData = nullptr;
+				model->m_loadStatus = AssetLoadStatus::LOADED;
+				model->clearRawData();
 				iter = s_assetsInProgress.erase(iter);
 				continue;
 			}
 
-			if (asset->m_type == Asset::Type::TEXTURE2D)
+			if (asset->m_type == AssetType::TEXTURE2D)
 			{
 				std::shared_ptr<TextureAsset> texture = std::static_pointer_cast<TextureAsset>(asset);
+				//TODO: Impliment a way to know when the texture is in GPU memory so we can safely call texture.clearRawData
 				if (/*texture->m_texture2D->m_uploaded*/true)
 				{
-					texture->m_loadStatus = Asset::Status::LOADED;
-					texture->m_textureData.rawTextureData = nullptr;
+					texture->m_loadStatus = AssetLoadStatus::LOADED;
+					//texture->m_textureData.rawTextureData = nullptr;
 					iter = s_assetsInProgress.erase(iter);
 					continue;
 				}

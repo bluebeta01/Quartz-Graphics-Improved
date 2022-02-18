@@ -5,11 +5,14 @@
 
 namespace Quartz
 {
-
-TextureAsset::TextureAsset(const std::string& name, const std::string& abolsutePath) :
-	Asset(Asset::Type::TEXTURE2D, name, abolsutePath), m_width(0), m_height(0), m_textureData({})
+bool TextureAsset::dependenciesLoaded() const
 {
-	//m_texture2D = Renderer::s_gengine.createTexture2D();
+	return m_loadStatus == AssetLoadStatus::LOADED;
+}
+
+void TextureAsset::clearRawData()
+{
+	m_rawData = nullptr;
 }
 
 void TextureAsset::load(std::shared_ptr<Asset> asset)
@@ -21,21 +24,14 @@ void TextureAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 {
 	std::shared_ptr<TextureAsset> asset = std::static_pointer_cast<TextureAsset>(callbackArgs);
 
-	asset->m_textureData.rawTextureData = std::make_shared<std::vector<unsigned char>>();
-	unsigned int errorCode = lodepng::decode(*asset->m_textureData.rawTextureData.get(), asset->m_textureData.textureWidth, asset->m_textureData.textureHeight, asset->m_absolutePath);
-	if (!errorCode)
-	{
-		asset->m_height = asset->m_textureData.textureHeight;
-		asset->m_width = asset->m_textureData.textureWidth;
-	}
-	else
+	asset->m_rawData = std::make_shared<std::vector<unsigned char>>();
+	unsigned int errorCode = lodepng::decode(*asset->m_rawData.get(), (unsigned int&)asset->m_width, (unsigned int&)asset->m_height, asset->m_absolutePath);
+	if (errorCode)
 	{
 		QZERROR("Failed to load texture \"{0}\"", asset->m_name);
 		return;
 	}
 
-	//asset->m_texture2D = Renderer::s_gengine.createTexture2D(asset->m_texture2D, asset->m_width, asset->m_height);
-	//asset->m_texture2D->bufferData(asset->m_textureData.rawTextureData.get());
 	Texture2DCreateInfo info = {};
 	info.arraySize = 1;
 	info.device = Renderer::s_device;
@@ -44,11 +40,10 @@ void TextureAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 	info.type = TextureType::IMAGE;
 	asset->m_texture2D = Texture2D::create(info);
 
-	asset->m_loadStatus = Asset::Status::READY_FOR_GPU_UPLOAD;
+	asset->m_loadStatus = AssetLoadStatus::READY_FOR_GPU_UPLOAD;
 }
 
-bool TextureAsset::childrenLoaded()
+void TextureAsset::loadDependencies()
 {
-	return m_loadStatus == Asset::Status::LOADED;
 }
 }

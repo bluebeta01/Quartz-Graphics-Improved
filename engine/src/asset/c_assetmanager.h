@@ -23,7 +23,7 @@ public:
 	static void update();
 	static void deinitialize();
 	static std::string findFile(const std::string& path);
-	static std::shared_ptr<Asset> getAsset(Asset::Type type, const std::string& pluginRelativePath);
+	static std::shared_ptr<Asset> getAsset(AssetType type, const std::string& pluginRelativePath);
 
 private:
 	static std::vector<std::shared_ptr<Plugin>> s_plugins;

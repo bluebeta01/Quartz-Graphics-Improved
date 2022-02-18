@@ -5,19 +5,28 @@
 #include <graphics.h>
 #include "common.h"
 #include "asset/assets/c_asset.h"
-#include "render/shaderproperty.h"
 
 namespace Quartz
 {
+class AssetManager;
+
 class ShaderAsset : public Asset
 {
 public:
+	ShaderAsset(const std::string& name, const std::string& absolutePath);
+	
+	bool dependenciesLoaded() const;
+
+	std::shared_ptr<Pipeline> getPipeline() const { return m_pipeline; }
+	int getId() const { return m_id; }
+
+private:
 	std::shared_ptr<Pipeline> m_pipeline;
 	int m_id = 0;
-	std::unordered_map<std::string, ShaderProperty> m_properties;
-	ShaderAsset(const std::string& name, const std::string& absolutePath);
 	void load(std::shared_ptr<Asset> asset);
-	void setMatrixBuffer(const Transform& transform, unsigned int frameIndex);
 	static void loadCallback(std::shared_ptr<void> callbackArgs);
+	void loadDependencies();
+
+	friend class AssetManager;
 };
 }

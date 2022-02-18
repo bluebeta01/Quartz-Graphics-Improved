@@ -7,23 +7,32 @@
 
 namespace Quartz
 {
-struct TextureData
-{
-	unsigned int textureWidth = 0;
-	unsigned int textureHeight = 0;
-	std::shared_ptr<std::vector<unsigned char>> rawTextureData;
-};
+class AssetManager;
 
 class TextureAsset : public Asset
 {
 public:
-	unsigned int m_width;
-	unsigned int m_height;
-	TextureData m_textureData;
+	TextureAsset(const std::string& name, const std::string& abolsutePath) :
+		Asset(AssetType::TEXTURE2D, name, abolsutePath)
+	{}
+
+	bool dependenciesLoaded() const;
+	void clearRawData();
+
+	int getWidth() const { return m_width; }
+	int getHeight() const { return m_height; }
+	std::shared_ptr<std::vector<unsigned char>> getRawData() { return m_rawData; }
+	std::shared_ptr<Texture2D> getTexture() const { return m_texture2D; }
+
+private:
+	std::shared_ptr<std::vector<unsigned char>> m_rawData;
 	std::shared_ptr<Texture2D> m_texture2D;
-	TextureAsset(const std::string& name, const std::string& abolsutePath);
+	int m_width = 0;
+	int m_height = 0;
 	void load(std::shared_ptr<Asset> asset);
 	static void loadCallback(std::shared_ptr<void> callbackArgs);
-	bool childrenLoaded();
+	void loadDependencies();
+
+	friend class AssetManager;
 };
 }

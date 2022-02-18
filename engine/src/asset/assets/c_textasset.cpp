@@ -5,6 +5,10 @@
 
 namespace Quartz
 {
+bool TextAsset::dependenciesLoaded() const
+{
+	return m_loadStatus == AssetLoadStatus::LOADED;
+}
 void TextAsset::load(std::shared_ptr<Asset> asset)
 {
 	AssetManager::s_threadPool.submitJob(TextAsset::loadCallback, std::static_pointer_cast<void>(asset), nullptr);
@@ -16,6 +20,9 @@ void TextAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 	FileStream stream;
 	stream.loadFile(asset->m_absolutePath.c_str(), true);
 	asset->m_text = stream.readAllText();
-	asset->m_loadStatus = Asset::Status::LOADED;
+	asset->m_loadStatus = AssetLoadStatus::LOADED;
+}
+void TextAsset::loadDependencies()
+{
 }
 }
