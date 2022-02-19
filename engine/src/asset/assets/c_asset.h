@@ -33,6 +33,8 @@ public:
 	virtual ~Asset() {}
 
 	virtual bool dependenciesLoaded() const = 0;
+	bool m_loadedCache = false;
+	bool m_loadedCacheValid = false;
 
 	AssetType getType() const { return m_type; }
 	const std::string& getName() const { return m_name; }

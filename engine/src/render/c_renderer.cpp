@@ -23,8 +23,8 @@ Renderer::Renderer()
 
 void Renderer::initialize()
 {
-	s_threadPool.initialize((int)roundf((std::thread::hardware_concurrency() - 1) * RENDER_THREADS));
-	QZINFO("Renderer thread count: {0}", s_threadPool.m_threadCount);
+	//s_threadPool.initialize((int)roundf((std::thread::hardware_concurrency() - 1) * RENDER_THREADS));
+	//QZINFO("Renderer thread count: {0}", s_threadPool.m_threadCount);
 
 	s_device = Device::create();
 	
@@ -82,9 +82,20 @@ bool Renderer::uploadAsset(std::shared_ptr<Asset> asset)
 
 void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& transform)
 {
-	if (!model || !model->dependenciesLoaded())
+	if (!model)
 		return;
 
+	if (!model->m_loadedCacheValid)
+		if (model->dependenciesLoaded())
+		{
+			model->m_loadedCache = true;
+			model->m_loadedCacheValid = true;
+		}
+		else
+			return;
+	else
+		if (!model->m_loadedCache)
+			return;
 	
 
 	glm::mat4 projectionMatrix = glm::perspectiveFovLH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
@@ -113,17 +124,10 @@ void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& t
 		s_render3d->bindTexture(diffuse->getTexture(), textureBindableDesc->tableIndex);
 	s_render3d->bindResources();
 	s_render3d->renderVBuffer(model->getVBuffer());
-	//memcpy_s(s_cbuffer->getAddress(), sizeof(glm::mat4) * 4, mvp, sizeof(glm::mat4) * 4);
-
-	//std::shared_ptr<TextureAsset> texture = std::static_pointer_cast<TextureAsset>(model->m_material->m_properties["diffuse"].m_value);
-
-	//s_render3D->renderVBuffer(*model->m_vBuffer, *model->m_material->m_material, *s_cbuffer);
 }
 
 void Renderer::beginRender()
 {
-	//s_render3D->beginFrame(s_swapChain);
-	//s_render3D->clearFrame(*s_swapChain);
 	std::shared_ptr<Framebuffer> fb = s_swapchain->acquireNextFrame();
 	s_swapchain->waitForFrame();
 	s_render3d->beginFrame(fb);
@@ -136,6 +140,10 @@ void Renderer::endRender()
 {
 	s_render3d->endFrame();
 	s_swapchain->present();
+
+	//We can remove this when we impliment the correct use of cbuffers with our entities. Wiring to a cbuffer
+	//while the shader is reading from it seems to be causing the driver to crash.
+	s_device->waitForIdle();
 }
 void Renderer::clear()
 {

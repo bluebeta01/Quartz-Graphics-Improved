@@ -90,5 +90,5 @@ void DxSwapchain::releaseFrame()
 
 void DxSwapchain::present()
 {
-	m_swapchain->Present(1, 0);
+	m_swapchain->Present(0, 0);
 }

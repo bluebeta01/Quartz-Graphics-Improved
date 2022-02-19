@@ -38,6 +38,8 @@ void Engine::gameLoopBody()
 	static std::shared_ptr<ModelAsset> shiba = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/shiba.qmf"));
 	static std::shared_ptr<ModelAsset> train;
 
+	static std::vector<std::shared_ptr<ModelAsset>> trainAssets;
+
 	static Transform ballTransform;
 	ballTransform.position.z = 150;
 
@@ -52,8 +54,8 @@ void Engine::gameLoopBody()
 		static float avg = 0;
 		avg = avg + ((delta - avg) / 10);
 
-		if (delta > avg * 1.5f)
-			QZINFO("Lag Spike: delta-{0}s", delta);
+		if (delta > 1.0f / 90.0f)
+			QZINFO("Frame drop: {0}ms, {1}fps", delta * 1000.0f, 1.0f / delta);
 
 		updateSystems();
 
@@ -68,12 +70,20 @@ void Engine::gameLoopBody()
 		}
 
 		if (Input::isKeyDownThisFrame('U'))
-			train = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/train.qmf"));
+		{
+			for (int i = 0; i < 1000; i++)
+			{
+				trainAssets.push_back(std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/train.qmf")));
+			}
+		}
 
 
 		Renderer::beginRender();
 		static float rot = 0;
 		rot += 1 * delta;
+
+		for (int i = 0; i < trainAssets.size(); i++)
+			Renderer::renderModel(trainAssets[i], ballTransform);
 
 		Renderer::renderModel(shiba, ballTransform);
 		Renderer::renderModel(train, ballTransform);

@@ -33,7 +33,7 @@ DxDevice::DxDevice()
     m_cpuCbvSrvUavHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::CBV_SRV_UAV);
     m_cpuDsvHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::DSV);
     m_cpuRtvHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::RTV);
-    m_gpuCbvSrvUavHeap = std::make_shared<DxGPUDescriptorHeap>(m_device, DxDescriptorHeapType::CBV_SRV_UAV, 1000);
+    m_gpuCbvSrvUavHeap = std::make_shared<DxGPUDescriptorHeap>(m_device, DxDescriptorHeapType::CBV_SRV_UAV, 100000);
 }
 
 void DxDevice::waitForIdle()
