@@ -82,10 +82,10 @@ bool Renderer::uploadAsset(std::shared_ptr<Asset> asset)
 
 void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& transform)
 {
-	if (!model)
+	if (!model || !model->dependenciesLoaded())
 		return;
 
-	if (!model->m_loadedCacheValid)
+	/*if (!model->m_loadedCacheValid)
 		if (model->dependenciesLoaded())
 		{
 			model->m_loadedCache = true;
@@ -95,10 +95,10 @@ void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& t
 			return;
 	else
 		if (!model->m_loadedCache)
-			return;
+			return;*/
 	
 
-	glm::mat4 projectionMatrix = glm::perspectiveFovLH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
+	glm::mat4 projectionMatrix = glm::perspectiveFovRH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
 	glm::mat4 viewMatrix = glm::identity<glm::mat4>();
 	glm::mat4 modelMatrix = Transform::matrixFromTransform(transform, false);
 	projectionMatrix = glm::transpose(projectionMatrix);
@@ -115,13 +115,19 @@ void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& t
 	std::shared_ptr<ShaderBindableDescription> textureBindableDesc =
 		model->getMaterial()->getShader()->getPipeline()->findBindableDescriptionByName("shaderTexture");
 
+	std::shared_ptr<ShaderBindableDescription> lightmapBindableDesc =
+		model->getMaterial()->getShader()->getPipeline()->findBindableDescriptionByName("lightmap");
+
 	std::shared_ptr<TextureAsset> diffuse = std::static_pointer_cast<TextureAsset>(model->getMaterial()->getProperty("diffuse").m_value);
+	std::shared_ptr<TextureAsset> lightmap = std::static_pointer_cast<TextureAsset>(model->getMaterial()->getProperty("lightmap").m_value);
 
 	s_render3d->bindPipeline(model->getMaterial()->getShader()->getPipeline());
 	if(cBufferBindableDesc != nullptr)
 		s_render3d->bindCBuffer(s_testBuffer, cBufferBindableDesc->tableIndex);
 	if(textureBindableDesc != nullptr)
 		s_render3d->bindTexture(diffuse->getTexture(), textureBindableDesc->tableIndex);
+	if (lightmapBindableDesc != nullptr)
+		s_render3d->bindTexture(lightmap->getTexture(), lightmapBindableDesc->tableIndex);
 	s_render3d->bindResources();
 	s_render3d->renderVBuffer(model->getVBuffer());
 }

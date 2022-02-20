@@ -35,13 +35,12 @@ void Engine::initGameLoop()
 
 void Engine::gameLoopBody()
 {
-	static std::shared_ptr<ModelAsset> shiba = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/shiba.qmf"));
+	static std::shared_ptr<ModelAsset> shiba = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/blender/debug_object_1.qmf"));
 	static std::shared_ptr<ModelAsset> train;
 
-	static std::vector<std::shared_ptr<ModelAsset>> trainAssets;
-
 	static Transform ballTransform;
-	ballTransform.position.z = 150;
+	ballTransform.position.z = -10;
+	//ballTransform.position.y = -15;
 
 	static float delta = 0;
 
@@ -71,10 +70,68 @@ void Engine::gameLoopBody()
 
 		if (Input::isKeyDownThisFrame('U'))
 		{
-			for (int i = 0; i < 1000; i++)
-			{
-				trainAssets.push_back(std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/train.qmf")));
-			}
+			std::shared_ptr<ShaderAsset> shader = std::static_pointer_cast<ShaderAsset>(AssetManager::getAsset(AssetType::SHADER, "shaders/lightmap.qshader"));
+			shiba->getMaterial()->setShader(shader);
+		}
+		if (Input::isKeyDownThisFrame('P'))
+		{
+			std::shared_ptr<ShaderAsset> shader = std::static_pointer_cast<ShaderAsset>(AssetManager::getAsset(AssetType::SHADER, "shaders/standard.qshader"));
+			shiba->getMaterial()->setShader(shader);
+		}
+		if (Input::isKeyDownThisFrame('O'))
+		{
+			MaterialProperty matProp = {};
+			matProp.m_name = "lightmap";
+			matProp.m_type = MaterialProperty::Type::TEXTURE2D;
+			matProp.m_value = std::static_pointer_cast<void>(AssetManager::getAsset(AssetType::TEXTURE2D, "textures/shiba_lightmap.png"));
+			shiba->getMaterial()->setProperty(matProp);
+			std::shared_ptr<ShaderAsset> shader = std::static_pointer_cast<ShaderAsset>(AssetManager::getAsset(AssetType::SHADER, "shaders/staticlit.qshader"));
+			shiba->getMaterial()->setShader(shader);
+		}
+
+		if (Input::isKeyDownThisFrame('T'))
+		{
+			int lightmapSize = 128;
+
+			Texture2DCreateInfo texInfo = {};
+			texInfo.arraySize = 1;
+			texInfo.device = Renderer::s_device;
+			texInfo.height = lightmapSize;
+			texInfo.width = lightmapSize;
+			texInfo.type = TextureType::RENDER_TARGET;
+			texInfo.textureResource = nullptr;
+			std::shared_ptr<Texture2D> renderTexture = Texture2D::create(texInfo);
+
+			texInfo.type = TextureType::DEPTH_STENCIL;
+			std::shared_ptr<Texture2D> dsTexture = Texture2D::create(texInfo);
+
+			std::vector<std::shared_ptr<Texture2D>> textures = { renderTexture, dsTexture };
+
+			FramebufferCreateInfo fbInfo = {};
+			fbInfo.device = Renderer::s_device;
+			fbInfo.textureCount = 1;
+			fbInfo.textures = &textures;
+			std::shared_ptr<Framebuffer> fb = Framebuffer::create(fbInfo);
+
+			std::shared_ptr<ShaderBindableDescription> cBufferBindableDesc =
+				shiba->getMaterial()->getShader()->getPipeline()->findBindableDescriptionByName("matracies");
+
+			Renderer::s_render3d->beginFrame(fb);
+			Renderer::s_render3d->setViewport(0, 0, lightmapSize, lightmapSize);
+			Renderer::s_render3d->setScissorRect(0, 0, lightmapSize, lightmapSize);
+			Renderer::s_render3d->clearFrame();
+			Renderer::s_render3d->bindPipeline(shiba->getMaterial()->getShader()->getPipeline());
+			Renderer::s_render3d->bindCBuffer(Renderer::s_testBuffer, cBufferBindableDesc->tableIndex);
+			Renderer::s_render3d->bindResources();
+			Renderer::s_render3d->renderVBuffer(shiba->getVBuffer());
+			Renderer::s_render3d->endFrame();
+			Renderer::s_device->waitForIdle();
+
+			
+
+			std::vector<uint8_t> data = Renderer::s_device->readbackTexture(fb->getTextures()[0]);
+
+			lodepng::encode("plugins/game/textures/shiba_lightmap.png", data, lightmapSize, lightmapSize);
 		}
 
 
@@ -82,11 +139,7 @@ void Engine::gameLoopBody()
 		static float rot = 0;
 		rot += 1 * delta;
 
-		for (int i = 0; i < trainAssets.size(); i++)
-			Renderer::renderModel(trainAssets[i], ballTransform);
-
 		Renderer::renderModel(shiba, ballTransform);
-		Renderer::renderModel(train, ballTransform);
 		Renderer::endRender();
 		
 	}

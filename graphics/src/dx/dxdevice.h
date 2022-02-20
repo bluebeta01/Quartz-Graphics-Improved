@@ -21,6 +21,7 @@ public:
 	void waitForIdle();
 	void uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize);
 	bool textureUploadReady();
+	std::vector<uint8_t> readbackTexture(std::shared_ptr<Texture2D> texture);
 
 	ID3D12Device* getDevice() const { return m_device; }
 	IDXGIFactory4* getFactory() const { return m_dxFactory4; }

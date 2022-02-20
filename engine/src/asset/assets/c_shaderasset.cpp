@@ -50,6 +50,20 @@ void ShaderAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 	std::string vsPath = AssetManager::findFile(vsSourceDir);
 	std::string psPath = AssetManager::findFile(psSourceDir);
 
+	nlohmann::json::boolean_t conservativeRaster = false;
+	auto& conservative = json.find("conservative");
+	if (conservative != json.end())
+		conservativeRaster = *conservative;
+
+	nlohmann::json::boolean_t depthTest = false;
+	auto& depth = json.find("depth");
+	if (depth != json.end())
+		depthTest = *depth;
+
+	nlohmann::json::boolean_t backfaceCulling = false;
+	auto& culling = json.find("culling");
+		if (culling != json.end())
+			backfaceCulling = *culling;
 
 	PipelineCreateInfo info = {};
 	info.device = Renderer::s_device;
@@ -58,6 +72,9 @@ void ShaderAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 	info.psPath = psPath;
 	info.vsEntryPoint = vsEntryPoint;
 	info.vsPath = vsPath;
+	info.conservativeRaster = conservativeRaster;
+	info.depthTest = depthTest;
+	info.backfaceCulling = backfaceCulling;
 
 	shader->m_pipeline = Pipeline::create(info);
 	

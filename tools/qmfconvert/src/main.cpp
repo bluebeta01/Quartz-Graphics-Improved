@@ -85,6 +85,7 @@ void convert(const char* filepath)
 	std::vector<float> positions;
 	std::vector<float> normals;
 	std::vector<float> uvs;
+	std::vector<float> uvs2;
 	std::vector<int> tris;
 	int triCount = 0;
 
@@ -119,6 +120,12 @@ void convert(const char* filepath)
 				std::string value = sourceElement->FirstChildElement("float_array")->GetText();
 				uvs = stringArrayToFloatArray(splitString(value));
 			}
+
+			if (sourceId == geoId + "-map-1")
+			{
+				std::string value = sourceElement->FirstChildElement("float_array")->GetText();
+				uvs2 = stringArrayToFloatArray(splitString(value));
+			}
 		}
 
 		if (!std::strcmp(sourceElement->Name(), "triangles"))
@@ -139,7 +146,7 @@ void convert(const char* filepath)
 	}
 	qmf.materialName += ".qmat";
 	qmf.modelName = doc.FirstChildElement("COLLADA")->FirstChildElement("library_geometries")->FirstChildElement("geometry")->FindAttribute("name")->Value();
-	qmf.floatsPerVert = 8;
+	qmf.floatsPerVert = 10;
 	qmf.numberOfVerts = triCount * 3;
 
 	for (int i = 0; i < tris.size(); i += 3)
@@ -157,7 +164,10 @@ void convert(const char* filepath)
 		qmf.data.push_back(normals[(normalIndex * 3) + 2]);
 
 		qmf.data.push_back(uvs[(uvIndex * 2)]);
-		qmf.data.push_back(1 - uvs[(uvIndex * 2) + 1]);
+		qmf.data.push_back(uvs[(uvIndex * 2) + 1]);
+
+		qmf.data.push_back(uvs2[(uvIndex * 2)]);
+		qmf.data.push_back(uvs2[(uvIndex * 2) + 1]);
 	}
 
 	std::string path = filepath;

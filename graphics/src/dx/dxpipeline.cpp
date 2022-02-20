@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 	Pipeline(createInfo)
@@ -19,7 +20,11 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 	D3DCompileFromFile(psSourcePathWide.c_str(), nullptr, nullptr, createInfo.psEntryPoint.c_str(), "ps_5_0", 0, 0, &pixelShader, &pixelShaderError);
 
 	//TODO: Log error here
-	assert(vertexShaderError == nullptr && pixelShaderError == nullptr);
+	//assert(vertexShaderError == nullptr && pixelShaderError == nullptr);
+	if (vertexShaderError)
+		std::cout << "Vertex shader error: " << (char*)vertexShaderError->GetBufferPointer() << "\n";
+	if(pixelShaderError)
+		std::cout << "Pixel shader error: " << (char*)pixelShaderError->GetBufferPointer() << "\n";
 
 	reflectShaders(vertexShader, pixelShader);
 
@@ -66,6 +71,7 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 	sampler.ShaderRegister = 0;
 	sampler.RegisterSpace = 0;
 	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	sampler.Filter = D3D12_FILTER::D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init_1_1(params.size(), params.data(), 1, &sampler, rootSignatureFlags);
@@ -81,16 +87,23 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		//{ "SV_InstanceID", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1}
 	};
-
+	
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
 	psoDesc.pRootSignature = m_rootSignature;
 	psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader);
 	psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader);
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+	if(!createInfo.backfaceCulling)
+		psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	if(!createInfo.depthTest)
+		psoDesc.DepthStencilState.DepthEnable = false;
+	if(createInfo.conservativeRaster)
+		psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE::D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON;
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -100,7 +113,7 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); // a default depth stencil state
 	((ID3D12Device*)m_device->getNativeResource())->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
-
+	
 	vertexShader->Release();
 	pixelShader->Release();
 }

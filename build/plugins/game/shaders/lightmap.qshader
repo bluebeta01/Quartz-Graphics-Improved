@@ -1,0 +1,9 @@
+{
+	"ps_source" : "shaders/source/dx/lightmap.hlsl",
+	"ps_entrypoint" : "PShader",
+	"vs_source" : "shaders/source/dx/lightmap.hlsl",
+	"vs_entrypoint" : "VShader",
+	"conservative" : true,
+	"depth" : false,
+	"culling" : false
+}

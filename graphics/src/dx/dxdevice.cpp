@@ -68,6 +68,49 @@ bool DxDevice::textureUploadReady()
     return m_textureUploadFence->GetCompletedValue() >= m_textureUploadFenceValue;
 }
 
+std::vector<uint8_t> DxDevice::readbackTexture(std::shared_ptr<Texture2D> texture)
+{
+    waitForIdle();
+    m_textureUploadCommandAllocator->Reset();
+    m_textureUploadCommandList->Reset(m_textureUploadCommandAllocator, nullptr);
+
+    DxTexture2D* dxtex = (DxTexture2D*)texture.get();
+    if (!dxtex->getReadbackBuffer())
+        dxtex->createReadbackBuffer();
+
+    m_textureUploadCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(dxtex->getTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_COPY_SOURCE));
+   
+    CD3DX12_TEXTURE_COPY_LOCATION source(dxtex->getTexture(), 0);
+    source.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+    source.SubresourceIndex = 0;
+
+    CD3DX12_SUBRESOURCE_FOOTPRINT destinationFootprint(DXGI_FORMAT_R8G8B8A8_UNORM, dxtex->getWidth(), dxtex->getHeight(), 1, dxtex->getRowPitch());
+    CD3DX12_TEXTURE_COPY_LOCATION destination(dxtex->getReadbackBuffer());
+    destination.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+    destination.PlacedFootprint.Footprint = destinationFootprint;
+
+    m_textureUploadCommandList->CopyTextureRegion(&destination, 0, 0, 0, &source, nullptr);
+
+    m_textureUploadCommandList->Close();
+    ID3D12CommandList* renderCommandList[] = { m_textureUploadCommandList };
+    m_dxCommandQueue->ExecuteCommandLists(1, renderCommandList);
+    waitForIdle();
+
+    const UINT64 readbackBufferSize = GetRequiredIntermediateSize(dxtex->getTexture(), 0, 1);
+    D3D12_RANGE readbackBufferRange{ 0, readbackBufferSize };
+    std::vector<uint8_t> data(readbackBufferSize);
+    void* dataPtr;
+
+    dxtex->getReadbackBuffer()->Map(0, &readbackBufferRange, (void**)&dataPtr);
+
+    memcpy_s(data.data(), data.size(), dataPtr, readbackBufferSize);
+
+    D3D12_RANGE emptyRange{ 0, 0 };
+    dxtex->getReadbackBuffer()->Unmap(0, &emptyRange);
+
+    return data;
+}
+
 void DxDevice::GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter)
 {
     *ppAdapter = nullptr;

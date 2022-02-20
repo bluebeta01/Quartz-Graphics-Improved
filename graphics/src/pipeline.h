@@ -14,6 +14,9 @@ struct PipelineCreateInfo
 	std::string vsPath;
 	std::string vsEntryPoint;
 	int id;
+	bool conservativeRaster;
+	bool depthTest;
+	bool backfaceCulling;
 };
 
 class Pipeline : Resource

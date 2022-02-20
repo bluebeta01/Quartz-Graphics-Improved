@@ -1,4 +1,5 @@
 Texture2D shaderTexture : register(t0);
+Texture2D lightmap : register(t1);
 SamplerState SampleType;
 
 cbuffer matracies : register(b0)
@@ -15,9 +16,10 @@ struct VOut
 	float3 pixelPos : POSITION;
 	float3 normal : NORMAL;
 	float2 tex : TEXCOORD0;
+	float2 lightmapcoords : TEXCOORD1;
 };
 
-VOut VShader(float4 position : POSITION, float4 normal : NORMAL, float2 texcoord : TEXCOORD, float2 lightmapcoord : TEXCOORD)
+VOut VShader(float4 position : POSITION, float4 normal : NORMAL, float2 texcoord : TEXCOORD, float2 lightmapcoord : TEXCOORD1)
 {
     VOut output;
 	output.position = position;
@@ -29,6 +31,8 @@ VOut VShader(float4 position : POSITION, float4 normal : NORMAL, float2 texcoord
 	output.position = mul(output.position, projectionMatrix);
 	output.tex = texcoord;
 	output.tex.y = 1 - output.tex.y;
+	output.lightmapcoords = lightmapcoord;
+	output.lightmapcoords.y = 1 - output.lightmapcoords.y;
 	output.pixelPos = mul(position, modelMatrix).xyz;
 	
 	normal.w = 0;
@@ -37,7 +41,7 @@ VOut VShader(float4 position : POSITION, float4 normal : NORMAL, float2 texcoord
 }
 
 
-float4 PShader(float4 position : SV_POSITION, float3 pixelPos : POSITION, float3 normal : NORMAL, float2 tex : TEXCOORD0) : SV_TARGET
+float4 PShader(float4 position : SV_POSITION, float3 pixelPos : POSITION, float3 normal : NORMAL, float2 tex : TEXCOORD0, float2 lightmapcoord : TEXCOORD1) : SV_TARGET
 {
 	//return float4(normal, 1.0);
 	
@@ -52,16 +56,9 @@ float4 PShader(float4 position : SV_POSITION, float3 pixelPos : POSITION, float3
 	float3 result = (ambientLight + diffuse);
 	
 	float4 textureColor;
-    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
     textureColor = shaderTexture.Sample(SampleType, tex);
-	
-	//return float4(result, 1.0f);
-    return float4(result, 1.0f) * textureColor;
+	float4 lightval = lightmap.Sample(SampleType, lightmapcoord);
 	
 	
-	//return float4(tex, 1.0, 1.0);
-	
-	
-	return textureColor;
-    //return textureColor * float4((ambientLight + diffuse) * c, 1.0f);
+	return textureColor * lightval;
 }

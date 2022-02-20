@@ -19,6 +19,7 @@ public:
 	bool dependenciesLoaded() const;
 
 	std::shared_ptr<ShaderAsset> getShader() const { return m_shader; }
+	void setShader(std::shared_ptr<ShaderAsset> shader) { m_shader = shader; }
 	void setProperty(const MaterialProperty& prop);
 	void removeProperty(const std::string& propertyName);
 	const MaterialProperty& getProperty(const std::string& propertyName);

@@ -45,7 +45,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-			state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			state = D3D12_RESOURCE_STATE_PRESENT;
 		}
 			
 
@@ -74,7 +74,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
 			IID_PPV_ARGS(&m_uploadBuffer));
-
+		
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -128,7 +128,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 
 		m_heapIndex = device->m_cpuRtvHeap->getNextFreeIndex();
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuRtvHeap->getHandleOfIndex(m_heapIndex);
-		device->getDevice()->CreateRenderTargetView(m_texture, nullptr, handle);
+		device->getDevice()->CreateRenderTargetView(m_texture, &desc, handle);
 		HRESULT r = device->getDevice()->GetDeviceRemovedReason();
 	}
 }
@@ -146,4 +146,22 @@ LONG_PTR DxTexture2D::getRowPitch() const
 LONG_PTR DxTexture2D::getSlicePitch() const
 {
 	return m_width * 4 * m_height;
+}
+
+void DxTexture2D::createReadbackBuffer()
+{
+	if (m_readbackBuffer)
+		return;
+
+	DxDevice* device = (DxDevice*)m_device.get();
+
+	const UINT64 readbackBufferSize = GetRequiredIntermediateSize(m_texture, 0, 1);
+
+	device->getDevice()->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(readbackBufferSize),
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&m_readbackBuffer));
 }
