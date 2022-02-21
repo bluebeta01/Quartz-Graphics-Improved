@@ -19,11 +19,6 @@ void Editor::initialize()
 
 	RenderableComponent renderComp = {};
 	renderComp.model = std::static_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/blender/debug_object_1.qmf"));
-	CBufferCreateInfo info = {};
-	info.device = Renderer::s_device;
-	info.size = sizeof(float) * 57;
-	for (int i = 0; i < Renderer::s_swapchain->getFramecount(); i++)
-		renderComp.cbuffers.push_back(CBuffer::create(info));
 	World::addComponentToEntity<RenderableComponent>(box, renderComp);
 
 	while (!GameWindow::getTerminated())

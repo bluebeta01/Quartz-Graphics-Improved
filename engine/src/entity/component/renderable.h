@@ -9,6 +9,5 @@ namespace Quartz
 struct RenderableComponent
 {
 	std::shared_ptr<ModelAsset> model;
-	std::vector<std::shared_ptr<CBuffer>> cbuffers;
 };
 }
