@@ -1,5 +1,6 @@
-Texture2D shaderTexture : register(t0);
+Texture2D diffuse : register(t0);
 Texture2D lightmap : register(t1);
+
 SamplerState SampleType;
 
 cbuffer matracies : register(b0)
@@ -51,12 +52,12 @@ float4 PShader(float4 position : SV_POSITION, float3 pixelPos : POSITION, float3
 	float3 lightDir = normalize(lightPos - pixelPos);
 	float diff = max(dot(normal, lightDir), 0.0);
 	float3 lightColor = {1,1,1};
-	float3 diffuse = diff * lightColor;
+	float3 diffuseColor = diff * lightColor;
 	
-	float3 result = (ambientLight + diffuse);
+	float3 result = (ambientLight + diffuseColor);
 	
 	float4 textureColor;
-    textureColor = shaderTexture.Sample(SampleType, tex);
+    textureColor = diffuse.Sample(SampleType, tex);
 	float4 lightval = lightmap.Sample(SampleType, lightmapcoord);
 	
 	

@@ -22,7 +22,7 @@ public:
 	void setShader(std::shared_ptr<ShaderAsset> shader) { m_shader = shader; }
 	void setProperty(const MaterialProperty& prop);
 	void removeProperty(const std::string& propertyName);
-	const MaterialProperty& getProperty(const std::string& propertyName);
+	const MaterialProperty* getProperty(const std::string& propertyName);
 
 private:
 	std::shared_ptr<ShaderAsset> m_shader;

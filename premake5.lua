@@ -21,7 +21,7 @@ project "game"
    targetdir "bin/%{prj.name}/%{cfg.buildcfg}"
    files { "%{prj.location}/src/**.h", "%{prj.location}/src/**.cpp" }
    objdir "bin/ojb/%{prj.name}/%{cfg.buildcfg}"
-   links { "engine", "lodepng", "d3d12.lib", "d3dcompiler.lib", "dxgi.lib", "dxguid.lib", "graphics" }
+   links { "engine", "lodepng", "d3d12.lib", "d3dcompiler.lib", "dxgi.lib", "dxguid.lib", "graphics", "lib/aftermath/lib/GFSDK_Aftermath_Lib.x64.lib" }
    includedirs { "game/src", "engine/src/include" }
    debugdir "build"
    postbuildcommands {
@@ -36,7 +36,7 @@ project "engine"
    targetdir "bin/%{prj.name}/%{cfg.buildcfg}"
    files { "%{prj.location}/src/**.h", "%{prj.location}/src/**.cpp" }
    objdir "bin/ojb/%{prj.name}/%{cfg.buildcfg}"
-   includedirs { "engine/src", "lib/json", "lib/lodepng", "lib/spdlog", "lib/glm", "graphics/include" }
+   includedirs { "engine/src", "lib/json", "lib/lodepng", "lib/spdlog", "lib/glm", "graphics/include", "lib/entt/include", "lib/aftermath/include" }
    pchheader "pch.h"
    pchsource "%{prj.location}/src/pch.cpp"
    
@@ -47,9 +47,7 @@ project "graphics"
    targetdir "bin/%{prj.name}/%{cfg.buildcfg}"
    files { "%{prj.location}/src/**.h", "%{prj.location}/src/**.cpp" }
    objdir "bin/obj/%{prj.name}/%{cfg.buildcfg}"
-   includedirs { "lib/spdlog", "lib/glm", "graphics/src" }
-   pchheader "pch.h"
-   pchsource "%{prj.location}/src/pch.cpp"
+   includedirs { "graphics/src" }
    
 project "wrapper"
    location "wrapper"

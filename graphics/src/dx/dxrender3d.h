@@ -25,4 +25,6 @@ private:
 	CD3DX12_VIEWPORT m_viewport = {};
 	CD3DX12_RECT m_scissorRect = {};
 	int m_tablesStartingIndex = 0;
+
+	void setAftermathEventMarker(const std::string& markerData);
 };

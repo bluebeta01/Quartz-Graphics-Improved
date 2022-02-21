@@ -8,6 +8,9 @@
 #include "asset/filesystem/c_filestream.h"
 #include "render/c_renderer.h"
 #include "c_threadpool.h"
+#include "entity\world.h"
+#include "entity\component\renderable.h"
+#include "entity/component/entityinfo.h"
 
 namespace Quartz
 {
@@ -23,9 +26,19 @@ void Engine::initialize(bool editorMode, HWND windowHandle)
 	if (!editorMode)
 		initGameLoop();
 }
-
+Entity box;
 void Engine::initGameLoop()
 {
+	box = World::createEntity("box", Transform(glm::vec3(0,0,-10)), World::getRootScene());
+	RenderableComponent renderComp = {};
+	renderComp.model = std::static_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/blender/debug_object_1.qmf"));
+	CBufferCreateInfo info = {};
+	info.device = Renderer::s_device;
+	info.size = sizeof(float) * 57;
+	for(int i = 0; i < Renderer::s_swapchain->getFramecount(); i++)
+		renderComp.cbuffers.push_back(CBuffer::create(info));
+	World::addComponentToEntity<RenderableComponent>(box, renderComp);
+
 	while (!GameWindow::getTerminated())
 		gameLoopBody();
 
@@ -36,11 +49,9 @@ void Engine::initGameLoop()
 void Engine::gameLoopBody()
 {
 	static std::shared_ptr<ModelAsset> shiba = std::dynamic_pointer_cast<ModelAsset>(AssetManager::getAsset(AssetType::MODEL, "models/blender/debug_object_1.qmf"));
-	static std::shared_ptr<ModelAsset> train;
 
 	static Transform ballTransform;
 	ballTransform.position.z = -10;
-	//ballTransform.position.y = -15;
 
 	static float delta = 0;
 
@@ -53,8 +64,17 @@ void Engine::gameLoopBody()
 		static float avg = 0;
 		avg = avg + ((delta - avg) / 10);
 
-		if (delta > 1.0f / 90.0f)
-			QZINFO("Frame drop: {0}ms, {1}fps", delta * 1000.0f, 1.0f / delta);
+		static float runningTime = 0;
+		runningTime += delta;
+		if (runningTime > 1)
+		{
+			runningTime = 0;
+			QZINFO("Average FPS: {0}", 1 / avg);
+		}
+
+		//QZINFO("{0}", delta);
+		//if (delta > 1.0f / 90.0f)
+			//QZINFO("Frame drop: {0}ms, {1}fps", delta * 1000.0f, 1.0f / delta);
 
 		updateSystems();
 
@@ -65,7 +85,9 @@ void Engine::gameLoopBody()
 
 		if (Input::isMouseButtonDown(0))
 		{
-			ballTransform.rotateY(5 * delta);
+			EntityInfoComponent c = World::getEntityRegister().get<EntityInfoComponent>(box);
+			c.transform.rotateY(3.0f * delta);
+			World::addComponentToEntity<EntityInfoComponent>(box, c);
 		}
 
 		if (Input::isKeyDownThisFrame('U'))
@@ -91,7 +113,7 @@ void Engine::gameLoopBody()
 
 		if (Input::isKeyDownThisFrame('T'))
 		{
-			int lightmapSize = 128;
+			int lightmapSize = 256;
 
 			Texture2DCreateInfo texInfo = {};
 			texInfo.arraySize = 1;
@@ -120,10 +142,7 @@ void Engine::gameLoopBody()
 			Renderer::s_render3d->setViewport(0, 0, lightmapSize, lightmapSize);
 			Renderer::s_render3d->setScissorRect(0, 0, lightmapSize, lightmapSize);
 			Renderer::s_render3d->clearFrame();
-			Renderer::s_render3d->bindPipeline(shiba->getMaterial()->getShader()->getPipeline());
-			Renderer::s_render3d->bindCBuffer(Renderer::s_testBuffer, cBufferBindableDesc->tableIndex);
-			Renderer::s_render3d->bindResources();
-			Renderer::s_render3d->renderVBuffer(shiba->getVBuffer());
+			Renderer::renderEntity(box);
 			Renderer::s_render3d->endFrame();
 			Renderer::s_device->waitForIdle();
 
@@ -136,10 +155,7 @@ void Engine::gameLoopBody()
 
 
 		Renderer::beginRender();
-		static float rot = 0;
-		rot += 1 * delta;
-
-		Renderer::renderModel(shiba, ballTransform);
+		Renderer::renderWorld();
 		Renderer::endRender();
 		
 	}
@@ -160,5 +176,6 @@ void Engine::initializeSystems(HWND windowHandle)
 	GameWindow::initialize(windowHandle);
 	AssetManager::initialize();
 	Renderer::initialize();
+	World::initialize();
 }
 }

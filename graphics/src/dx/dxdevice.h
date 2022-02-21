@@ -2,6 +2,8 @@
 #include <d3d12.h>
 #include <memory>
 #include <dxgi1_4.h>
+#include <GFSDK_Aftermath.h>
+#include "nvidia\NsightAftermathGpuCrashTracker.h"
 #include "d3dx12.h"
 #include "device.h"
 #include "dxcpudescheap.h"
@@ -11,6 +13,8 @@ class DxDevice : public Device
 {
 public:
 	DxDevice();
+	GFSDK_Aftermath_ContextHandle m_hAftermathCommandListContext;
+	GpuCrashTracker m_gpuCrashTracker;
 
 	std::shared_ptr<DxCPUDescriptorHeap> m_cpuCbvSrvUavHeap;
 	std::shared_ptr<DxCPUDescriptorHeap> m_cpuDsvHeap;

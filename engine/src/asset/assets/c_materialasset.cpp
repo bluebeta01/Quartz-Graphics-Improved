@@ -44,13 +44,13 @@ void MaterialAsset::removeProperty(const std::string& propertyName)
 	m_properties.erase(p);
 }
 
-const MaterialProperty& MaterialAsset::getProperty(const std::string& propertyName)
+const MaterialProperty* MaterialAsset::getProperty(const std::string& propertyName)
 {
-	auto p = m_properties.find(propertyName);
-	if (p == m_properties.end())
-		return MaterialProperty();
+	auto& p = m_properties.find(propertyName);
+	if (p != m_properties.end())
+		return &p->second;
 
-	return p->second;
+	return nullptr;
 }
 
 void MaterialAsset::load(std::shared_ptr<Asset> asset)

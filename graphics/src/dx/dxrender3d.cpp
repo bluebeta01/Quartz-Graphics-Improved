@@ -5,11 +5,21 @@
 #include "dxpipeline.h"
 #include "dxcbuffer.h"
 #include "dxvbuffer.h"
+#include <assert.h>
 
 DxRender3D::DxRender3D(std::shared_ptr<Device> device) :
 	Render3D(device)
 {
 	
+
+}
+
+void DxRender3D::setAftermathEventMarker(const std::string& markerData)
+{
+	DxDevice* dxdevice = (DxDevice*)m_device.get();
+
+	GFSDK_Aftermath_SetEventMarker(dxdevice->m_hAftermathCommandListContext,
+		(void*)markerData.c_str(), (unsigned int)markerData.size() + 1);
 }
 
 void DxRender3D::beginFrame(std::shared_ptr<Framebuffer> framebuffer)
@@ -22,6 +32,8 @@ void DxRender3D::beginFrame(std::shared_ptr<Framebuffer> framebuffer)
 	{
 		((DxDevice*)m_device.get())->getDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, dxfb->getAllocator(), nullptr, IID_PPV_ARGS(&m_commandList));
 		m_commandList->Close();
+		DxDevice* dxdevice = (DxDevice*)m_device.get();
+		GFSDK_Aftermath_DX12_CreateContextHandle(m_commandList, &dxdevice->m_hAftermathCommandListContext);
 	}
 
 	dxfb->getAllocator()->Reset();
@@ -45,21 +57,25 @@ void DxRender3D::clearFrame()
 	DxTexture2D* dsTexture = ((DxTexture2D*)m_currentFramebuffer->getTextures()[1].get());
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle = ((DxDevice*)m_device.get())->m_cpuDsvHeap->getHandleOfIndex(dsTexture->getHeapIndex());
 
-	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	static float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+
+	setAftermathEventMarker("Clear render target");
+
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 }
 
 void DxRender3D::setViewport(int x, int y, int width, int height)
 {
-	m_viewport = CD3DX12_VIEWPORT(x, y, (float)width, (float)height);
-	m_commandList->RSSetViewports(1, &m_viewport);
+	CD3DX12_VIEWPORT viewport = CD3DX12_VIEWPORT(x, y, (float)width, (float)height);
+	m_commandList->RSSetViewports(1, &viewport);
+	viewport = {};
 }
 
 void DxRender3D::setScissorRect(int x, int y, int width, int height)
 {
-	m_scissorRect = CD3DX12_RECT(x, y, (LONG)width, (LONG)height);
-	m_commandList->RSSetScissorRects(1, &m_scissorRect);
+	CD3DX12_RECT scissorRect = CD3DX12_RECT(x, y, (LONG)width, (LONG)height);
+	m_commandList->RSSetScissorRects(1, &scissorRect);
 }
 
 void DxRender3D::bindPipeline(std::shared_ptr<Pipeline> pipeline)
@@ -110,6 +126,7 @@ void DxRender3D::renderVBuffer(std::shared_ptr<VBuffer> vBuffer)
 {
 	D3D12_VERTEX_BUFFER_VIEW view = ((DxVBuffer*)vBuffer.get())->getBufferView();
 	m_commandList->IASetVertexBuffers(0, 1, &view);
+	setAftermathEventMarker("Draw vbuffer");
 	m_commandList->DrawInstanced(vBuffer->getVertexCount(), 1, 0, 0);
 }
 
@@ -118,12 +135,14 @@ void DxRender3D::endFrame()
 	DxTexture2D* rt = (DxTexture2D*)m_currentFramebuffer->getTextures()[0].get();
 	DxFramebuffer* dxfb = (DxFramebuffer*)m_currentFramebuffer.get();
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rt->getTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-	m_commandList->Close();
+	HRESULT r = m_commandList->Close();
+	assert(r == S_OK);
 
 	ID3D12CommandList* renderCommandList[] = { m_commandList };
 	((DxDevice*)m_device.get())->getQueue()->ExecuteCommandLists(1, renderCommandList);
 	dxfb->incrementFenceValue();
-	((DxDevice*)m_device.get())->getQueue()->Signal(dxfb->getFence(), dxfb->getFenceValue());
+	r = ((DxDevice*)m_device.get())->getQueue()->Signal(dxfb->getFence(), dxfb->getFenceValue());
+	assert(r == S_OK);
 }
 
 void DxRender3D::uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize)

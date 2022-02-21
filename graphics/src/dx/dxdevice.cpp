@@ -3,10 +3,18 @@
 
 DxDevice::DxDevice()
 {
+    m_gpuCrashTracker.Initialize();
+
     bool dxDebug = true;
     UINT factoryFlags = 0;
     if (dxDebug)
     {
+        ID3D12DeviceRemovedExtendedDataSettings* pDredSettings;
+
+        D3D12GetDebugInterface(IID_PPV_ARGS(&pDredSettings));
+        pDredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+        pDredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+
         D3D12GetDebugInterface(IID_PPV_ARGS(&m_dxDebugController));
         m_dxDebugController->EnableDebugLayer();
         factoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
@@ -34,6 +42,17 @@ DxDevice::DxDevice()
     m_cpuDsvHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::DSV);
     m_cpuRtvHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::RTV);
     m_gpuCbvSrvUavHeap = std::make_shared<DxGPUDescriptorHeap>(m_device, DxDescriptorHeapType::CBV_SRV_UAV, 100000);
+
+    const uint32_t aftermathFlags =
+        GFSDK_Aftermath_FeatureFlags_EnableMarkers |             // Enable event marker tracking.
+        GFSDK_Aftermath_FeatureFlags_EnableResourceTracking |    // Enable tracking of resources.
+        GFSDK_Aftermath_FeatureFlags_CallStackCapturing |        // Capture call stacks for all draw calls, compute dispatches, and resource copies.
+        GFSDK_Aftermath_FeatureFlags_GenerateShaderDebugInfo;    // Generate debug information for shaders.
+
+    GFSDK_Aftermath_DX12_Initialize(
+        GFSDK_Aftermath_Version_API,
+        aftermathFlags,
+        m_device);
 }
 
 void DxDevice::waitForIdle()
@@ -122,11 +141,13 @@ void DxDevice::GetHardwareAdapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAda
             // No more adapters to enumerate.
             break;
         }
-
+        
         // Check to see if the adapter supports Direct3D 12, but don't create the
         // actual device yet.
         if (SUCCEEDED(D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
         {
+            DXGI_ADAPTER_DESC desc = {};
+            pAdapter->GetDesc(&desc);
             *ppAdapter = pAdapter;
             return;
         }

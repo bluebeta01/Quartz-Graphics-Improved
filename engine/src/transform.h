@@ -10,7 +10,9 @@ namespace Quartz
 {
 struct Transform
 {
-	Transform() : position(glm::vec3(0,0,0)), rotation(glm::quat(1.0, 0.0, 0.0, 0.0)), scale(glm::vec3(1,1,1))
+	Transform(glm::vec3 position = glm::vec3(0,0,0), glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+		glm::vec3 scale = glm::vec3(1,1,1)) :
+		position(position), rotation(rotation), scale(scale)
 	{
 	}
 

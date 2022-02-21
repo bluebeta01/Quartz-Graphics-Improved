@@ -2,6 +2,9 @@
 #include "render/c_renderer.h"
 #include "window/c_gamewindow.h"
 #include "asset/c_assetmanager.h"
+#include "entity\world.h"
+#include "entity/component/entityinfo.h"
+#include "entity/component/renderable.h"
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <gtx/transform.hpp>
@@ -14,7 +17,6 @@ ThreadPool Renderer::s_threadPool;
 std::shared_ptr<Device> Renderer::s_device;
 std::shared_ptr<Swapchain> Renderer::s_swapchain;
 std::shared_ptr<Render3D> Renderer::s_render3d;
-std::shared_ptr<CBuffer> Renderer::s_testBuffer;
 
 Renderer::Renderer()
 {
@@ -39,11 +41,6 @@ void Renderer::initialize()
 	s_swapchain = Swapchain::create(info);
 
 	s_render3d = Render3D::create(s_device);
-
-	CBufferCreateInfo bufferCreateInfo = {};
-	bufferCreateInfo.device = s_device;
-	bufferCreateInfo.size = sizeof(float) * 57;
-	s_testBuffer = CBuffer::create(bufferCreateInfo);
 }
 
 void Renderer::deinitialize()
@@ -80,56 +77,65 @@ bool Renderer::uploadAsset(std::shared_ptr<Asset> asset)
 	}
 }
 
-void Renderer::renderModel(std::shared_ptr<ModelAsset> model, const Transform& transform)
+void Renderer::renderWorld()
 {
-	if (!model || !model->dependenciesLoaded())
-		return;
+	auto view = World::getEntityRegister().view<const RenderableComponent, const EntityInfoComponent>();
+	for (Entity entity : view)
+	{
+		renderEntity(entity);
+	}
+}
 
-	/*if (!model->m_loadedCacheValid)
-		if (model->dependenciesLoaded())
-		{
-			model->m_loadedCache = true;
-			model->m_loadedCacheValid = true;
-		}
-		else
-			return;
-	else
-		if (!model->m_loadedCache)
-			return;*/
-	
+void Renderer::renderEntity(Entity entity)
+{
+	auto& entityInfo = World::getEntityRegister().get<const EntityInfoComponent>(entity);
+	auto& entityRenderInfo = World::getEntityRegister().get<const RenderableComponent>(entity);
+
+	CBuffer* cbuffer = entityRenderInfo.cbuffers[s_swapchain->getFrameIndex()].get();
 
 	glm::mat4 projectionMatrix = glm::perspectiveFovRH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
 	glm::mat4 viewMatrix = glm::identity<glm::mat4>();
-	glm::mat4 modelMatrix = Transform::matrixFromTransform(transform, false);
+	glm::mat4 modelMatrix = Transform::matrixFromTransform(entityInfo.transform, false);
 	projectionMatrix = glm::transpose(projectionMatrix);
 	modelMatrix = glm::transpose(modelMatrix);
 	viewMatrix = glm::transpose(viewMatrix);
 	glm::mat4 normalMatrix = glm::transpose(glm::inverse(modelMatrix));
 
 	glm::mat4 mvp[] = { modelMatrix, viewMatrix, projectionMatrix, normalMatrix };
-	s_testBuffer->bufferData(mvp, sizeof(float) * 57);
+	cbuffer->bufferData(mvp, sizeof(float) * 57);
 
-	std::shared_ptr<ShaderBindableDescription> cBufferBindableDesc =
-		model->getMaterial()->getShader()->getPipeline()->findBindableDescriptionByName("matracies");
+	if (!entityRenderInfo.model || !entityRenderInfo.model->dependenciesLoaded())
+		return;
 
-	std::shared_ptr<ShaderBindableDescription> textureBindableDesc =
-		model->getMaterial()->getShader()->getPipeline()->findBindableDescriptionByName("shaderTexture");
+	s_render3d->bindPipeline(entityRenderInfo.model->getMaterial()->getShader()->getPipeline());
 
-	std::shared_ptr<ShaderBindableDescription> lightmapBindableDesc =
-		model->getMaterial()->getShader()->getPipeline()->findBindableDescriptionByName("lightmap");
+	for (std::shared_ptr<ShaderBindableDescription> bindable : entityRenderInfo.model->getMaterial()->getShader()->getPipeline()->getShaderBindableDescriptions())
+	{
+		switch (bindable->type)
+		{
+		case ShaderVariableType::TEXTURE:
+		{
+			const MaterialProperty* matProp = entityRenderInfo.model->getMaterial()->getProperty(bindable->name);
+			if (!matProp)
+				continue;
+			if (matProp->m_type == MaterialProperty::Type::TEXTURE2D)
+				s_render3d->bindTexture(std::static_pointer_cast<TextureAsset>(matProp->m_value)->getTexture(), bindable->tableIndex);
+			break;
+		}
+		case ShaderVariableType::CBUFFER:
+		{
+			if (bindable->name == "matracies")
+			{
+				s_render3d->bindCBuffer(entityRenderInfo.cbuffers[s_swapchain->getFrameIndex()], bindable->tableIndex);
+			}
+			break;
+		}
+		}
+	}
 
-	std::shared_ptr<TextureAsset> diffuse = std::static_pointer_cast<TextureAsset>(model->getMaterial()->getProperty("diffuse").m_value);
-	std::shared_ptr<TextureAsset> lightmap = std::static_pointer_cast<TextureAsset>(model->getMaterial()->getProperty("lightmap").m_value);
-
-	s_render3d->bindPipeline(model->getMaterial()->getShader()->getPipeline());
-	if(cBufferBindableDesc != nullptr)
-		s_render3d->bindCBuffer(s_testBuffer, cBufferBindableDesc->tableIndex);
-	if(textureBindableDesc != nullptr)
-		s_render3d->bindTexture(diffuse->getTexture(), textureBindableDesc->tableIndex);
-	if (lightmapBindableDesc != nullptr)
-		s_render3d->bindTexture(lightmap->getTexture(), lightmapBindableDesc->tableIndex);
 	s_render3d->bindResources();
-	s_render3d->renderVBuffer(model->getVBuffer());
+	s_render3d->renderVBuffer(entityRenderInfo.model->getVBuffer());
+
 }
 
 void Renderer::beginRender()
@@ -149,7 +155,7 @@ void Renderer::endRender()
 
 	//We can remove this when we impliment the correct use of cbuffers with our entities. Wiring to a cbuffer
 	//while the shader is reading from it seems to be causing the driver to crash.
-	s_device->waitForIdle();
+	//s_device->waitForIdle();
 }
 void Renderer::clear()
 {

@@ -1,6 +1,8 @@
 #include "dxswapchain.h"
 #include "dxdevice.h"
 #include "dxframebuffer.h"
+#include <assert.h>
+#include <iostream>
 
 DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	Swapchain(createInfo)
@@ -11,8 +13,9 @@ DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	swapChainDesc.Height = m_height;
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 	std::shared_ptr<DxDevice> device = std::static_pointer_cast<DxDevice>(m_device);
 	HWND* hwnd = (HWND*)createInfo.renderSurface;
@@ -79,8 +82,9 @@ void DxSwapchain::waitForFrame()
 	std::shared_ptr<DxFramebuffer> framebuffer = std::static_pointer_cast<DxFramebuffer>(m_framebuffers[m_frameIndex]);
 	if (framebuffer->getFence()->GetCompletedValue() <= framebuffer->getFenceValue())
 	{
-		framebuffer->getFence()->SetEventOnCompletion(framebuffer->getFenceValue(), framebuffer->getReadyEvent());
-		WaitForSingleObject(framebuffer->getReadyEvent(), INFINITE);
+		HRESULT r = framebuffer->getFence()->SetEventOnCompletion(framebuffer->getFenceValue(), framebuffer->getReadyEvent());
+		assert(r == S_OK);
+		WaitForSingleObjectEx(framebuffer->getReadyEvent(), INFINITE, FALSE);
 	}
 }
 
@@ -90,5 +94,10 @@ void DxSwapchain::releaseFrame()
 
 void DxSwapchain::present()
 {
-	m_swapchain->Present(0, 0);
+	HRESULT r = m_swapchain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+	if (r != S_OK)
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(5));
+		exit(-1);
+	}
 }
