@@ -1,3 +1,12 @@
 #pragma once
 #include "../c_engine.h"
 #include "../input/c_input.h"
+#include "../transform.h"
+#include "../log.h"
+#include "../window/c_gamewindow.h"
+#include "../render/c_renderer.h"
+#include "../entity/entity.h"
+#include "../entity/component/entityinfo.h"
+#include "../entity/component/renderable.h"
+#include "../entity/world.h"
+#include "../asset/c_assetmanager.h"

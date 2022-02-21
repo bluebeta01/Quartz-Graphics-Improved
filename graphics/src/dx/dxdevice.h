@@ -13,8 +13,6 @@ class DxDevice : public Device
 {
 public:
 	DxDevice();
-	GFSDK_Aftermath_ContextHandle m_hAftermathCommandListContext;
-	GpuCrashTracker m_gpuCrashTracker;
 
 	std::shared_ptr<DxCPUDescriptorHeap> m_cpuCbvSrvUavHeap;
 	std::shared_ptr<DxCPUDescriptorHeap> m_cpuDsvHeap;

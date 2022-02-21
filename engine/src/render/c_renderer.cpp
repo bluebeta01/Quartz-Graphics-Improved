@@ -17,6 +17,7 @@ ThreadPool Renderer::s_threadPool;
 std::shared_ptr<Device> Renderer::s_device;
 std::shared_ptr<Swapchain> Renderer::s_swapchain;
 std::shared_ptr<Render3D> Renderer::s_render3d;
+CBufferPool Renderer::s_matrixBufferPool(100, sizeof(float) * 57);
 
 Renderer::Renderer()
 {
@@ -41,6 +42,8 @@ void Renderer::initialize()
 	s_swapchain = Swapchain::create(info);
 
 	s_render3d = Render3D::create(s_device);
+
+	s_matrixBufferPool.initialize();
 }
 
 void Renderer::deinitialize()
@@ -77,32 +80,19 @@ bool Renderer::uploadAsset(std::shared_ptr<Asset> asset)
 	}
 }
 
-void Renderer::renderWorld()
+void Renderer::renderWorld(const glm::mat4& viewMatrix)
 {
 	auto view = World::getEntityRegister().view<const RenderableComponent, const EntityInfoComponent>();
 	for (Entity entity : view)
 	{
-		renderEntity(entity);
+		renderEntity(entity, viewMatrix);
 	}
 }
 
-void Renderer::renderEntity(Entity entity)
+void Renderer::renderEntity(Entity entity, const glm::mat4& viewMatrix)
 {
 	auto& entityInfo = World::getEntityRegister().get<const EntityInfoComponent>(entity);
 	auto& entityRenderInfo = World::getEntityRegister().get<const RenderableComponent>(entity);
-
-	CBuffer* cbuffer = entityRenderInfo.cbuffers[s_swapchain->getFrameIndex()].get();
-
-	glm::mat4 projectionMatrix = glm::perspectiveFovRH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
-	glm::mat4 viewMatrix = glm::identity<glm::mat4>();
-	glm::mat4 modelMatrix = Transform::matrixFromTransform(entityInfo.transform, false);
-	projectionMatrix = glm::transpose(projectionMatrix);
-	modelMatrix = glm::transpose(modelMatrix);
-	viewMatrix = glm::transpose(viewMatrix);
-	glm::mat4 normalMatrix = glm::transpose(glm::inverse(modelMatrix));
-
-	glm::mat4 mvp[] = { modelMatrix, viewMatrix, projectionMatrix, normalMatrix };
-	cbuffer->bufferData(mvp, sizeof(float) * 57);
 
 	if (!entityRenderInfo.model || !entityRenderInfo.model->dependenciesLoaded())
 		return;
@@ -126,7 +116,21 @@ void Renderer::renderEntity(Entity entity)
 		{
 			if (bindable->name == "matracies")
 			{
-				s_render3d->bindCBuffer(entityRenderInfo.cbuffers[s_swapchain->getFrameIndex()], bindable->tableIndex);
+				std::shared_ptr<CBuffer> buffer = s_matrixBufferPool.getNextBuffer();
+
+				glm::mat4 projectionMatrix = glm::perspectiveFovRH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
+				glm::mat4 viewMatrixTransposed = viewMatrix;
+				glm::mat4 modelMatrix = Transform::matrixFromTransform(entityInfo.getWorldTransform(), false);
+				projectionMatrix = glm::transpose(projectionMatrix);
+				modelMatrix = glm::transpose(modelMatrix);
+				viewMatrixTransposed = glm::transpose(viewMatrix);
+				glm::mat4 normalMatrix = glm::transpose(glm::inverse(modelMatrix));
+
+				glm::mat4 mvp[] = { modelMatrix, viewMatrixTransposed, projectionMatrix, normalMatrix };
+				buffer->bufferData(mvp, sizeof(float) * 57);
+
+				s_render3d->bindCBuffer(buffer, bindable->tableIndex);
+				//s_render3d->bindCBuffer(entityRenderInfo.cbuffers[s_swapchain->getFrameIndex()], bindable->tableIndex);
 			}
 			break;
 		}
@@ -143,19 +147,12 @@ void Renderer::beginRender()
 	std::shared_ptr<Framebuffer> fb = s_swapchain->acquireNextFrame();
 	s_swapchain->waitForFrame();
 	s_render3d->beginFrame(fb);
-	s_render3d->setViewport(0, 0, GameWindow::getWidth(), GameWindow::getHeight());
-	s_render3d->setScissorRect(0, 0, GameWindow::getWidth(), GameWindow::getHeight());
-	clear();
 }
 
 void Renderer::endRender()
 {
 	s_render3d->endFrame();
 	s_swapchain->present();
-
-	//We can remove this when we impliment the correct use of cbuffers with our entities. Wiring to a cbuffer
-	//while the shader is reading from it seems to be causing the driver to crash.
-	//s_device->waitForIdle();
 }
 void Renderer::clear()
 {
@@ -169,5 +166,13 @@ void Renderer::resize(int width, int height)
 {
 	//s_swapChain->resize(width, height, GameWindow::getHandle());
 	//s_render3D->resize(width, height);
+}
+void Renderer::setViewport(float x, float y, float width, float height)
+{
+	s_render3d->setViewport(x, y, width, height);
+}
+void Renderer::setScissor(int x, int y, int width, int height)
+{
+	s_render3d->setScissorRect(x, y, width, height);
 }
 }

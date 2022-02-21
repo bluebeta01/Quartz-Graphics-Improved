@@ -9,9 +9,9 @@ public:
 	Engine();
 	void initialize(bool editorMode, HWND windowHandle = nullptr);
 	void gameLoopBody();
+	void updateSystems();
 private:
 	bool m_editorMode;
-	void updateSystems();
 	void initializeSystems(HWND windowHandle);
 	void initGameLoop();
 };

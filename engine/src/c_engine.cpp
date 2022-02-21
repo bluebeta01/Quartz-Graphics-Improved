@@ -142,7 +142,7 @@ void Engine::gameLoopBody()
 			Renderer::s_render3d->setViewport(0, 0, lightmapSize, lightmapSize);
 			Renderer::s_render3d->setScissorRect(0, 0, lightmapSize, lightmapSize);
 			Renderer::s_render3d->clearFrame();
-			Renderer::renderEntity(box);
+			Renderer::renderEntity(box, glm::mat4(1.0f));
 			Renderer::s_render3d->endFrame();
 			Renderer::s_device->waitForIdle();
 
@@ -155,7 +155,7 @@ void Engine::gameLoopBody()
 
 
 		Renderer::beginRender();
-		Renderer::renderWorld();
+		Renderer::renderWorld(glm::mat4(1.0f));
 		Renderer::endRender();
 		
 	}

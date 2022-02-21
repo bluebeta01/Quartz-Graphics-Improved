@@ -16,7 +16,7 @@ public:
 	static std::shared_ptr<Render3D> create(std::shared_ptr<Device> device);
 	virtual void beginFrame(std::shared_ptr<Framebuffer> framebuffer) = 0;
 	virtual void clearFrame() = 0;
-	virtual void setViewport(int x, int y, int width, int height) = 0;
+	virtual void setViewport(float x, float y, float width, float height) = 0;
 	virtual void setScissorRect(int x, int y, int width, int height) = 0;
 	virtual void bindPipeline(std::shared_ptr<Pipeline> pipeline) = 0;
 	virtual void bindCBuffer(std::shared_ptr<CBuffer> cbuffer, int tableIndex) = 0;

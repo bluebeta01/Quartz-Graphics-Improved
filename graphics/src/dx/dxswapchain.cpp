@@ -1,8 +1,6 @@
 #include "dxswapchain.h"
 #include "dxdevice.h"
 #include "dxframebuffer.h"
-#include <assert.h>
-#include <iostream>
 
 DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	Swapchain(createInfo)
@@ -83,7 +81,6 @@ void DxSwapchain::waitForFrame()
 	if (framebuffer->getFence()->GetCompletedValue() <= framebuffer->getFenceValue())
 	{
 		HRESULT r = framebuffer->getFence()->SetEventOnCompletion(framebuffer->getFenceValue(), framebuffer->getReadyEvent());
-		assert(r == S_OK);
 		WaitForSingleObjectEx(framebuffer->getReadyEvent(), INFINITE, FALSE);
 	}
 }
@@ -95,9 +92,4 @@ void DxSwapchain::releaseFrame()
 void DxSwapchain::present()
 {
 	HRESULT r = m_swapchain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
-	if (r != S_OK)
-	{
-		std::this_thread::sleep_for(std::chrono::seconds(5));
-		exit(-1);
-	}
 }

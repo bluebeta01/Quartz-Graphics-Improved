@@ -10,7 +10,7 @@ public:
 
 	void beginFrame(std::shared_ptr<Framebuffer> framebuffer);
 	void clearFrame();
-	void setViewport(int x, int y, int width, int height);
+	void setViewport(float x, float y, float width, float height);
 	void setScissorRect(int x, int y, int width, int height);
 	void bindPipeline(std::shared_ptr<Pipeline> pipeline);
 	void bindCBuffer(std::shared_ptr<CBuffer> cbuffer, int tableIndex);
@@ -25,6 +25,4 @@ private:
 	CD3DX12_VIEWPORT m_viewport = {};
 	CD3DX12_RECT m_scissorRect = {};
 	int m_tablesStartingIndex = 0;
-
-	void setAftermathEventMarker(const std::string& markerData);
 };

@@ -3,8 +3,6 @@
 
 DxDevice::DxDevice()
 {
-    m_gpuCrashTracker.Initialize();
-
     bool dxDebug = true;
     UINT factoryFlags = 0;
     if (dxDebug)
@@ -42,17 +40,6 @@ DxDevice::DxDevice()
     m_cpuDsvHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::DSV);
     m_cpuRtvHeap = std::make_shared<DxCPUDescriptorHeap>(m_device, DxDescriptorHeapType::RTV);
     m_gpuCbvSrvUavHeap = std::make_shared<DxGPUDescriptorHeap>(m_device, DxDescriptorHeapType::CBV_SRV_UAV, 100000);
-
-    const uint32_t aftermathFlags =
-        GFSDK_Aftermath_FeatureFlags_EnableMarkers |             // Enable event marker tracking.
-        GFSDK_Aftermath_FeatureFlags_EnableResourceTracking |    // Enable tracking of resources.
-        GFSDK_Aftermath_FeatureFlags_CallStackCapturing |        // Capture call stacks for all draw calls, compute dispatches, and resource copies.
-        GFSDK_Aftermath_FeatureFlags_GenerateShaderDebugInfo;    // Generate debug information for shaders.
-
-    GFSDK_Aftermath_DX12_Initialize(
-        GFSDK_Aftermath_Version_API,
-        aftermathFlags,
-        m_device);
 }
 
 void DxDevice::waitForIdle()
