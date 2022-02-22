@@ -17,7 +17,7 @@ public:
 	ID3D12Resource* getUploadBuffer() const { return m_uploadBuffer; }
 	ID3D12Resource* getReadbackBuffer() const { return m_readbackBuffer; }
 	void setTexture(ID3D12Resource* texture) { m_texture = texture; }
-	int getHeapIndex() const { return m_heapIndex; }
+	int getHeapIndex() const { return m_cpuHeapIndex; }
 	D3D12_SUBRESOURCE_DATA& getSubresourceData() { return m_subresourceData; }
 
 private:
@@ -25,6 +25,6 @@ private:
 	ID3D12Resource* m_uploadBuffer = nullptr;
 	ID3D12Resource* m_readbackBuffer = nullptr;
 	D3D12_RESOURCE_DESC m_resourceDesc = {};
-	int m_heapIndex = 0;
+	int m_cpuHeapIndex = 0;
 	D3D12_SUBRESOURCE_DATA m_subresourceData = {};
 };

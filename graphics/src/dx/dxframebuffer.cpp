@@ -9,3 +9,8 @@ DxFramebuffer::DxFramebuffer(const FramebufferCreateInfo& createInfo) :
 	((ID3D12Device*)m_device->getNativeResource())->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_allocator));
 	m_readyEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 }
+
+bool DxFramebuffer::readyForRender()
+{
+	return m_fence->GetCompletedValue() == m_fenceValue;
+}

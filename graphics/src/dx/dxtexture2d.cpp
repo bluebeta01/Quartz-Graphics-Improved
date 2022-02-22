@@ -19,10 +19,10 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 
 		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 		D3D12_CLEAR_VALUE clearValue;
-		clearValue.Color[0] = 0;
+		clearValue.Color[0] = 0.0f;
 		clearValue.Color[1] = 0.2f;
 		clearValue.Color[2] = 0.4f;
-		clearValue.Color[3] = 1;
+		clearValue.Color[3] = 1.0f;
 		clearValue.DepthStencil.Depth = 1;
 		clearValue.DepthStencil.Stencil = 0;
 
@@ -89,8 +89,8 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			srvDesc.Texture2DArray.ArraySize = m_arraySize;
 		}
 
-		m_heapIndex = device->m_cpuCbvSrvUavHeap->getNextFreeIndex();
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuCbvSrvUavHeap->getHandleOfIndex(m_heapIndex);
+		m_cpuHeapIndex = device->m_cpuCbvSrvUavHeap->getNextFreeIndex();
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuCbvSrvUavHeap->getHandleOfIndex(m_cpuHeapIndex);
 		device->getDevice()->CreateShaderResourceView(m_texture, &srvDesc, handle);
 	}
 
@@ -107,8 +107,8 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			depthStencilDesc.Texture2DArray.ArraySize = m_arraySize;
 		}
 
-		m_heapIndex = device->m_cpuDsvHeap->getNextFreeIndex();
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuDsvHeap->getHandleOfIndex(m_heapIndex);
+		m_cpuHeapIndex = device->m_cpuDsvHeap->getNextFreeIndex();
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuDsvHeap->getHandleOfIndex(m_cpuHeapIndex);
 		device->getDevice()->CreateDepthStencilView(m_texture, &depthStencilDesc, handle);
 	}
 
@@ -126,8 +126,8 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			desc.Texture2DArray.ArraySize = m_arraySize;
 		}
 
-		m_heapIndex = device->m_cpuRtvHeap->getNextFreeIndex();
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuRtvHeap->getHandleOfIndex(m_heapIndex);
+		m_cpuHeapIndex = device->m_cpuRtvHeap->getNextFreeIndex();
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuRtvHeap->getHandleOfIndex(m_cpuHeapIndex);
 		device->getDevice()->CreateRenderTargetView(m_texture, &desc, handle);
 		HRESULT r = device->getDevice()->GetDeviceRemovedReason();
 	}

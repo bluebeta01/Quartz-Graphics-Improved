@@ -6,6 +6,7 @@
 #include <dx/dxdevice.h>
 #include <dx/dxrender3d.h>
 #include <window/window.h>
+#include <dx/dxtexture2d.h>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -14,6 +15,10 @@ namespace Quartz::Editor
 Engine Editor::m_engine;
 Entity boxParent;
 Entity box;
+
+std::shared_ptr<Framebuffer> viewportFramebuffer;
+int viewportFramebufferHeapIndex = 0;
+
 void Editor::initialize()
 {
 	m_engine.initialize(true);
@@ -105,7 +110,35 @@ void Editor::initialize()
 	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
+	Texture2DCreateInfo texInfo = {};
+	texInfo.arraySize = 1;
+	texInfo.device = Renderer::s_device;
+	texInfo.height = 1080;
+	texInfo.width = 1920;
+	texInfo.type = TextureType::RENDER_TARGET;
+	texInfo.textureResource = nullptr;
+	std::shared_ptr<Texture2D> renderTexture = Texture2D::create(texInfo);
 
+	texInfo.type = TextureType::DEPTH_STENCIL;
+	std::shared_ptr<Texture2D> dsTexture = Texture2D::create(texInfo);
+
+	std::vector<std::shared_ptr<Texture2D>> textures = { renderTexture, dsTexture };
+
+	FramebufferCreateInfo fbInfo = {};
+	fbInfo.device = Renderer::s_device;
+	fbInfo.textureCount = 1;
+	fbInfo.textures = &textures;
+	viewportFramebuffer = Framebuffer::create(fbInfo);
+
+	DxTexture2D* dxtex = (DxTexture2D*)viewportFramebuffer->getTextures()[0].get();
+	viewportFramebufferHeapIndex = ((DxDevice*)Renderer::s_device.get())->m_cpuCbvSrvUavHeap->getNextFreeIndex();
+	D3D12_CPU_DESCRIPTOR_HANDLE viewportFramebufferCpuHandle = ((DxDevice*)Renderer::s_device.get())->m_cpuCbvSrvUavHeap->getHandleOfIndex(viewportFramebufferHeapIndex);
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	((DxDevice*)Renderer::s_device.get())->getDevice()->CreateShaderResourceView(dxtex->getTexture(), &srvDesc, viewportFramebufferCpuHandle);
 
 	while (!GameWindow::getTerminated())
 		gameLoop();
@@ -119,13 +152,42 @@ void Editor::gameLoop()
 	m_engine.updateSystems();
 	ImGui_ImplWin32_WndProcHandler(*GameWindow::getHandle(), Window::message, Window::wParam, Window::lParam);
 
+	if (viewportFramebuffer->readyForRender())
+	{
+		Renderer::s_render3d->beginFrame(viewportFramebuffer);
+		Renderer::s_render3d->setViewport(0, 0, 1920, 1080);
+		Renderer::s_render3d->setScissorRect(0, 0, 1920, 1080);
+		Renderer::s_render3d->clearFrame();
+		Renderer::renderWorld(glm::mat4(1.0f));
+		Renderer::s_render3d->endFrame();
+	}
+
+	
+
 	Renderer::beginRender();
+
+	DxTexture2D* dxtex = (DxTexture2D*)viewportFramebuffer->getTextures()[0].get();
+	DxRender3D* dxrender3d = (DxRender3D*)Renderer::s_render3d.get();
+	dxrender3d->getCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(dxtex->getTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	int loc = ((DxDevice*)Renderer::s_device.get())->m_gpuCbvSrvUavHeap->requestSpace(1);
+	D3D12_CPU_DESCRIPTOR_HANDLE viewportFramebufferCpuHandle = ((DxDevice*)Renderer::s_device.get())->m_cpuCbvSrvUavHeap->getHandleOfIndex(viewportFramebufferHeapIndex);
+	D3D12_CPU_DESCRIPTOR_HANDLE viewportFramebufferCpuHandleGpu = ((DxDevice*)Renderer::s_device.get())->m_gpuCbvSrvUavHeap->getCPUHandleOfIndex(loc);
+	((DxDevice*)Renderer::s_device.get())->getDevice()->CopyDescriptorsSimple(1, viewportFramebufferCpuHandleGpu, viewportFramebufferCpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_GPU_DESCRIPTOR_HANDLE viewportFramebufferGpuHandle = ((DxDevice*)Renderer::s_device.get())->m_gpuCbvSrvUavHeap->getGPUHandleOfIndex(loc);
+
 
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 	bool showDemoWindow = true;
 	ImGui::ShowDemoWindow(&showDemoWindow);
+
+	{
+		ImGui::Begin("Render Window");
+		ImTextureID texid = (void*)viewportFramebufferGpuHandle.ptr;
+		ImGui::Image(texid, ImGui::GetWindowSize());
+		ImGui::End();
+	}
 	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
 	{
 		static float f = 0.0f;
@@ -172,6 +234,8 @@ void Editor::gameLoop()
 	((DxRender3D*)Renderer::s_render3d.get())->getCommandList()->SetDescriptorHeaps(1, heaps);
 
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), ((DxRender3D*)Renderer::s_render3d.get())->getCommandList());
+
+	dxrender3d->getCommandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(dxtex->getTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT));
 
 	Renderer::endRender();
 
