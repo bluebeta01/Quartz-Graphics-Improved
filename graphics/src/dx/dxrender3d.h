@@ -20,6 +20,8 @@ public:
 	void endFrame();
 	void uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize);
 
+	ID3D12GraphicsCommandList* getCommandList() { return m_commandList; }
+
 private:
 	ID3D12GraphicsCommandList* m_commandList = nullptr;
 	CD3DX12_VIEWPORT m_viewport = {};

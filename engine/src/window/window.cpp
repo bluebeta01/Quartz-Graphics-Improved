@@ -9,9 +9,16 @@ namespace Window
 {
 HWND windowHandle;
 MSG msg;
+WPARAM wParam;
+LPARAM lParam;
+UINT message;
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    Window::message = message;
+    Window::wParam = wParam;
+    Window::lParam = lParam;
+
     switch (message)
     {
 

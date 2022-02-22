@@ -2,7 +2,6 @@
 #include <d3d12.h>
 #include <memory>
 #include <dxgi1_4.h>
-#include <GFSDK_Aftermath.h>
 #include "nvidia\NsightAftermathGpuCrashTracker.h"
 #include "d3dx12.h"
 #include "device.h"

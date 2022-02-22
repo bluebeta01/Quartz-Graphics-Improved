@@ -152,7 +152,6 @@ void Renderer::beginRender()
 void Renderer::endRender()
 {
 	s_render3d->endFrame();
-	s_swapchain->present();
 }
 void Renderer::clear()
 {
@@ -160,7 +159,7 @@ void Renderer::clear()
 }
 void Renderer::present()
 {
-	
+	s_swapchain->present();
 }
 void Renderer::resize(int width, int height)
 {

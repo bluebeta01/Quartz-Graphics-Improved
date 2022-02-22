@@ -31,10 +31,10 @@ public:
 	static void setViewport(float x, float y, float width, float height);
 	static void setScissor(int x, int y, int width, int height);
 	static void clear();
+	static void present();
 
 private:
 	static ThreadPool s_threadPool;
-	static void present();
 	Renderer();
 };
 }
