@@ -17,14 +17,22 @@ public:
 	ID3D12Resource* getUploadBuffer() const { return m_uploadBuffer; }
 	ID3D12Resource* getReadbackBuffer() const { return m_readbackBuffer; }
 	void setTexture(ID3D12Resource* texture) { m_texture = texture; }
-	int getHeapIndex() const { return m_cpuHeapIndex; }
+	int getRtvHeapIndex() const { return m_rtvHeapIndex; }
+	int getDsvHeapIndex() const { return m_dsvHeapIndex; }
+	int getSrvHeapIndex() const { return m_srvHeapIndex; }
 	D3D12_SUBRESOURCE_DATA& getSubresourceData() { return m_subresourceData; }
+	D3D12_CLEAR_VALUE getClearValue() const { return m_clearValue; }
+	D3D12_CLEAR_VALUE getDepthClearValue() const { return m_depthClearValue; }
 
 private:
 	ID3D12Resource* m_texture = nullptr;
 	ID3D12Resource* m_uploadBuffer = nullptr;
 	ID3D12Resource* m_readbackBuffer = nullptr;
 	D3D12_RESOURCE_DESC m_resourceDesc = {};
-	int m_cpuHeapIndex = 0;
+	int m_rtvHeapIndex = 0;
+	int m_dsvHeapIndex = 0;
+	int m_srvHeapIndex = 0;
 	D3D12_SUBRESOURCE_DATA m_subresourceData = {};
+	D3D12_CLEAR_VALUE m_clearValue = {};
+	D3D12_CLEAR_VALUE m_depthClearValue = {};
 };

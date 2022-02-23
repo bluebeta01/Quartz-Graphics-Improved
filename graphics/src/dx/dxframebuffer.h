@@ -14,6 +14,7 @@ public:
 	int getFenceValue() const { return m_fenceValue; }
 	void incrementFenceValue() { m_fenceValue++; }
 	bool readyForRender();
+	void waitIfNotReady();
 
 private:
 	ID3D12CommandAllocator* m_allocator = nullptr;

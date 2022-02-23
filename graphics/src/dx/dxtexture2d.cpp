@@ -6,6 +6,16 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 {
 	std::shared_ptr<DxDevice> device = std::static_pointer_cast<DxDevice>(m_device);
 
+	m_clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	m_clearValue.Color[0] = 0;
+	m_clearValue.Color[1] = 0.2;
+	m_clearValue.Color[2] = 0.4f;
+	m_clearValue.Color[3] = 1.0;
+
+	m_depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+	m_depthClearValue.DepthStencil.Depth = 1;
+	m_depthClearValue.DepthStencil.Stencil = 0;
+
 	if (createInfo.textureResource == nullptr)
 	{
 		D3D12_RESOURCE_DESC textureDesc = {};
@@ -18,31 +28,21 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 		textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
 		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
-		D3D12_CLEAR_VALUE clearValue;
-		clearValue.Color[0] = 0.0f;
-		clearValue.Color[1] = 0.2f;
-		clearValue.Color[2] = 0.4f;
-		clearValue.Color[3] = 1.0f;
-		clearValue.DepthStencil.Depth = 1;
-		clearValue.DepthStencil.Stencil = 0;
 
 		if (m_type == TextureType::IMAGE)
 		{
-			clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 			state = D3D12_RESOURCE_STATE_COPY_DEST;
 		}
 		if (m_type == TextureType::DEPTH_STENCIL)
 		{
-			clearValue.Format = DXGI_FORMAT_D32_FLOAT;
 			textureDesc.Format = DXGI_FORMAT_D32_FLOAT;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 			state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		}
 		if (m_type == TextureType::RENDER_TARGET)
 		{
-			clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 			state = D3D12_RESOURCE_STATE_PRESENT;
@@ -54,7 +54,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			D3D12_HEAP_FLAG_NONE,
 			&textureDesc,
 			state,
-			(m_type == TextureType::IMAGE ? nullptr : &clearValue),
+			(m_type == TextureType::IMAGE ? nullptr : (m_type == TextureType::RENDER_TARGET ? &m_clearValue : &m_depthClearValue)),
 			IID_PPV_ARGS(&m_texture)
 		);
 	}
@@ -89,8 +89,8 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			srvDesc.Texture2DArray.ArraySize = m_arraySize;
 		}
 
-		m_cpuHeapIndex = device->m_cpuCbvSrvUavHeap->getNextFreeIndex();
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuCbvSrvUavHeap->getHandleOfIndex(m_cpuHeapIndex);
+		m_srvHeapIndex = device->m_cpuCbvSrvUavHeap->getNextFreeIndex();
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuCbvSrvUavHeap->getHandleOfIndex(m_srvHeapIndex);
 		device->getDevice()->CreateShaderResourceView(m_texture, &srvDesc, handle);
 	}
 
@@ -107,8 +107,8 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			depthStencilDesc.Texture2DArray.ArraySize = m_arraySize;
 		}
 
-		m_cpuHeapIndex = device->m_cpuDsvHeap->getNextFreeIndex();
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuDsvHeap->getHandleOfIndex(m_cpuHeapIndex);
+		m_dsvHeapIndex = device->m_cpuDsvHeap->getNextFreeIndex();
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuDsvHeap->getHandleOfIndex(m_dsvHeapIndex);
 		device->getDevice()->CreateDepthStencilView(m_texture, &depthStencilDesc, handle);
 	}
 
@@ -126,10 +126,30 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			desc.Texture2DArray.ArraySize = m_arraySize;
 		}
 
-		m_cpuHeapIndex = device->m_cpuRtvHeap->getNextFreeIndex();
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuRtvHeap->getHandleOfIndex(m_cpuHeapIndex);
+		m_rtvHeapIndex = device->m_cpuRtvHeap->getNextFreeIndex();
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuRtvHeap->getHandleOfIndex(m_rtvHeapIndex);
 		device->getDevice()->CreateRenderTargetView(m_texture, &desc, handle);
-		HRESULT r = device->getDevice()->GetDeviceRemovedReason();
+
+		if (createInfo.createSrvForRenderTarget)
+		{
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			if (m_arraySize == 1)
+			{
+				srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+				srvDesc.Texture2D.MipLevels = 1;
+			}
+			else
+			{
+				srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+				srvDesc.Texture2DArray.ArraySize = m_arraySize;
+			}
+
+			m_srvHeapIndex = device->m_cpuCbvSrvUavHeap->getNextFreeIndex();
+			CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuCbvSrvUavHeap->getHandleOfIndex(m_srvHeapIndex);
+			device->getDevice()->CreateShaderResourceView(m_texture, &srvDesc, handle);
+		}
 	}
 }
 

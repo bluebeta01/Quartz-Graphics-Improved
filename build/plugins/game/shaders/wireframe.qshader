@@ -1,0 +1,7 @@
+{
+	"ps_source" : "shaders/source/dx/wireframe.hlsl",
+	"ps_entrypoint" : "PShader",
+	"vs_source" : "shaders/source/dx/wireframe.hlsl",
+	"vs_entrypoint" : "VShader",
+	"wireframe" : true
+}

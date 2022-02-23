@@ -25,6 +25,9 @@ public:
 	virtual void renderVBuffer(std::shared_ptr<VBuffer> vBuffer) = 0;
 	virtual void endFrame() = 0;
 	virtual void uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize) = 0;
+	virtual void transitionViewportTextureForPresent(std::shared_ptr<Texture2D> texture) = 0;
+	virtual void transitionViewportTextureForRenderPas(std::shared_ptr<Texture2D> texture) = 0;
+	virtual std::shared_ptr<void> uploadViewportDescriptor(std::shared_ptr<Texture2D> viewportTexture) = 0;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }
 

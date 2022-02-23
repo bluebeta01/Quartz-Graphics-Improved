@@ -7,3 +7,4 @@
 #include "../src/device.h"
 #include "../src/cbuffer.h"
 #include "../src/bindabledescriptions.h"
+#include "../src/viewportswapchain.h"

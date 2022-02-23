@@ -62,8 +62,13 @@ void ShaderAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 
 	nlohmann::json::boolean_t backfaceCulling = false;
 	auto& culling = json.find("culling");
-		if (culling != json.end())
-			backfaceCulling = *culling;
+	if (culling != json.end())
+		backfaceCulling = *culling;
+
+	nlohmann::json::boolean_t wireframeFill = false;
+	auto& wireframe = json.find("wireframe");
+	if (wireframe != json.end())
+		wireframeFill = *wireframe;
 
 	PipelineCreateInfo info = {};
 	info.device = Renderer::s_device;
@@ -75,6 +80,7 @@ void ShaderAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 	info.conservativeRaster = conservativeRaster;
 	info.depthTest = depthTest;
 	info.backfaceCulling = backfaceCulling;
+	info.wireframe = wireframeFill;
 
 	shader->m_pipeline = Pipeline::create(info);
 	

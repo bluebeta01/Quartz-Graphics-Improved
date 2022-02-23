@@ -19,6 +19,9 @@ public:
 	void renderVBuffer(std::shared_ptr<VBuffer> vBuffer);
 	void endFrame();
 	void uploadTexture(std::shared_ptr<Texture2D> texture, void* data, int dataSize);
+	void transitionViewportTextureForPresent(std::shared_ptr<Texture2D> texture);
+	void transitionViewportTextureForRenderPas(std::shared_ptr<Texture2D> texture);
+	std::shared_ptr<void> uploadViewportDescriptor(std::shared_ptr<Texture2D> viewportTexture);
 
 	ID3D12GraphicsCommandList* getCommandList() { return m_commandList; }
 

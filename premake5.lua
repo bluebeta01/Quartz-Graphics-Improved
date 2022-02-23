@@ -59,7 +59,7 @@ project "editor"
    targetdir "bin/%{prj.name}/%{cfg.buildcfg}"
    files { "%{prj.location}/src/**.h", "%{prj.location}/src/**.cpp" }
    objdir "bin/obj/%{prj.name}/%{cfg.buildcfg}"
-   includedirs { "engine/src/include", "lib/json", "lib/lodepng", "lib/spdlog", "lib/glm", "graphics/include", "graphics/src", "lib/entt/include", "engine/src" }
+   includedirs { "engine/src/include", "lib/json", "lib/lodepng", "lib/spdlog", "lib/glm", "graphics/include", "graphics/src", "lib/entt/include", "engine/src", "editor/src" }
    links { "engine", "lodepng", "d3d12.lib", "d3dcompiler.lib", "dxgi.lib", "dxguid.lib", "graphics" }
    pchheader "pch.h"
    pchsource "%{prj.location}/src/pch.cpp"

@@ -32,9 +32,11 @@ public:
 	static void setScissor(int x, int y, int width, int height);
 	static void clear();
 	static void present();
+	static void setOverridePipeline(std::shared_ptr<Pipeline> pipeline);
 
 private:
 	static ThreadPool s_threadPool;
+	static std::shared_ptr<Pipeline> m_overridePipeline;
 	Renderer();
 };
 }

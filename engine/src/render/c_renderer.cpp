@@ -18,6 +18,7 @@ std::shared_ptr<Device> Renderer::s_device;
 std::shared_ptr<Swapchain> Renderer::s_swapchain;
 std::shared_ptr<Render3D> Renderer::s_render3d;
 CBufferPool Renderer::s_matrixBufferPool(100, sizeof(float) * 57);
+std::shared_ptr<Pipeline> Renderer::m_overridePipeline;
 
 Renderer::Renderer()
 {
@@ -97,9 +98,16 @@ void Renderer::renderEntity(Entity entity, const glm::mat4& viewMatrix)
 	if (!entityRenderInfo.model || !entityRenderInfo.model->dependenciesLoaded())
 		return;
 
-	s_render3d->bindPipeline(entityRenderInfo.model->getMaterial()->getShader()->getPipeline());
+	std::shared_ptr<Pipeline> pipeline;
 
-	for (std::shared_ptr<ShaderBindableDescription> bindable : entityRenderInfo.model->getMaterial()->getShader()->getPipeline()->getShaderBindableDescriptions())
+	if (!m_overridePipeline)
+		pipeline = entityRenderInfo.model->getMaterial()->getShader()->getPipeline();
+	else
+		pipeline = m_overridePipeline;
+
+	s_render3d->bindPipeline(pipeline);
+	
+	for (std::shared_ptr<ShaderBindableDescription> bindable : pipeline->getShaderBindableDescriptions())
 	{
 		switch (bindable->type)
 		{
@@ -160,6 +168,13 @@ void Renderer::clear()
 void Renderer::present()
 {
 	s_swapchain->present();
+}
+void Renderer::setOverridePipeline(std::shared_ptr<Pipeline> pipeline)
+{
+	if (pipeline)
+		m_overridePipeline = pipeline;
+	else
+		m_overridePipeline = nullptr;
 }
 void Renderer::resize(int width, int height)
 {

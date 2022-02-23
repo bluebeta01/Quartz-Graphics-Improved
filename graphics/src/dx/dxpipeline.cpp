@@ -104,6 +104,8 @@ DxPipeline::DxPipeline(const PipelineCreateInfo& createInfo) :
 		psoDesc.DepthStencilState.DepthEnable = false;
 	if(createInfo.conservativeRaster)
 		psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE::D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON;
+	if (createInfo.wireframe)
+		psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;

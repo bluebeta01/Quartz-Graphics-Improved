@@ -31,9 +31,9 @@ void DxRender3D::beginFrame(std::shared_ptr<Framebuffer> framebuffer)
 	
 
 	DxTexture2D* rtTexture = ((DxTexture2D*)framebuffer->getTextures()[0].get());
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = ((DxDevice*)m_device.get())->m_cpuRtvHeap->getHandleOfIndex(rtTexture->getHeapIndex());
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = ((DxDevice*)m_device.get())->m_cpuRtvHeap->getHandleOfIndex(rtTexture->getRtvHeapIndex());
 	DxTexture2D* dsTexture = ((DxTexture2D*)framebuffer->getTextures()[1].get());
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle = ((DxDevice*)m_device.get())->m_cpuDsvHeap->getHandleOfIndex(dsTexture->getHeapIndex());
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle = ((DxDevice*)m_device.get())->m_cpuDsvHeap->getHandleOfIndex(dsTexture->getDsvHeapIndex());
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rtTexture->getTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
@@ -43,13 +43,11 @@ void DxRender3D::beginFrame(std::shared_ptr<Framebuffer> framebuffer)
 void DxRender3D::clearFrame()
 {
 	DxTexture2D* rtTexture = ((DxTexture2D*)m_currentFramebuffer->getTextures()[0].get());
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = ((DxDevice*)m_device.get())->m_cpuRtvHeap->getHandleOfIndex(rtTexture->getHeapIndex());
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle = ((DxDevice*)m_device.get())->m_cpuRtvHeap->getHandleOfIndex(rtTexture->getRtvHeapIndex());
 	DxTexture2D* dsTexture = ((DxTexture2D*)m_currentFramebuffer->getTextures()[1].get());
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle = ((DxDevice*)m_device.get())->m_cpuDsvHeap->getHandleOfIndex(dsTexture->getHeapIndex());
-
-	static float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle = ((DxDevice*)m_device.get())->m_cpuDsvHeap->getHandleOfIndex(dsTexture->getDsvHeapIndex());
+	m_commandList->ClearRenderTargetView(rtvHandle, rtTexture->getClearValue().Color, 0, nullptr);
+	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, dsTexture->getDepthClearValue().DepthStencil.Depth, dsTexture->getDepthClearValue().DepthStencil.Stencil, 0, nullptr);
 }
 
 void DxRender3D::setViewport(float x, float y, float width, float height)
@@ -89,7 +87,7 @@ void DxRender3D::bindCBuffer(std::shared_ptr<CBuffer> cbuffer, int tableIndex)
 void DxRender3D::bindTexture(std::shared_ptr<Texture2D> texture, int tableIndex)
 {
 	DxTexture2D* dxtex = (DxTexture2D*)texture.get();
-	CD3DX12_CPU_DESCRIPTOR_HANDLE srvCpuHeapHandle = ((DxDevice*)m_device.get())->m_cpuCbvSrvUavHeap->getHandleOfIndex(dxtex->getHeapIndex());
+	CD3DX12_CPU_DESCRIPTOR_HANDLE srvCpuHeapHandle = ((DxDevice*)m_device.get())->m_cpuCbvSrvUavHeap->getHandleOfIndex(dxtex->getSrvHeapIndex());
 	D3D12_CPU_DESCRIPTOR_HANDLE srvGpuHeapHandle = ((DxDevice*)m_device.get())->m_gpuCbvSrvUavHeap->getCPUHandleOfIndex(m_tablesStartingIndex + m_currentPipeline->getCBufferCount() + tableIndex);
 
 	((ID3D12Device*)m_device->getNativeResource())->CopyDescriptorsSimple(1, srvGpuHeapHandle, srvCpuHeapHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -141,4 +139,28 @@ void DxRender3D::uploadTexture(std::shared_ptr<Texture2D> texture, void* data, i
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(tex->getTexture(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
+}
+
+void DxRender3D::transitionViewportTextureForPresent(std::shared_ptr<Texture2D> texture)
+{
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(((DxTexture2D*)texture.get())->getTexture(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+}
+
+void DxRender3D::transitionViewportTextureForRenderPas(std::shared_ptr<Texture2D> texture)
+{
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(((DxTexture2D*)texture.get())->getTexture(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PRESENT));
+}
+
+std::shared_ptr<void> DxRender3D::uploadViewportDescriptor(std::shared_ptr<Texture2D> viewportTexture)
+{
+	DxDevice* device = (DxDevice*)m_device.get();
+	DxTexture2D* dxtex = (DxTexture2D*)viewportTexture.get();
+
+	int gpuHeapIndex = device->m_gpuCbvSrvUavHeap->requestSpace(1);
+	D3D12_CPU_DESCRIPTOR_HANDLE viewportFramebufferCpuHandle = device->m_cpuCbvSrvUavHeap->getHandleOfIndex(dxtex->getSrvHeapIndex());
+	D3D12_CPU_DESCRIPTOR_HANDLE viewportFramebufferCpuHandleGpu = device->m_gpuCbvSrvUavHeap->getCPUHandleOfIndex(gpuHeapIndex);
+	device->getDevice()->CopyDescriptorsSimple(1, viewportFramebufferCpuHandleGpu, viewportFramebufferCpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	std::shared_ptr<D3D12_GPU_DESCRIPTOR_HANDLE> gpuHandle = std::make_shared<D3D12_GPU_DESCRIPTOR_HANDLE>(device->m_gpuCbvSrvUavHeap->getGPUHandleOfIndex(gpuHeapIndex));
+	return std::static_pointer_cast<void>(gpuHandle);
 }

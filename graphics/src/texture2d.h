@@ -20,6 +20,7 @@ struct Texture2DCreateInfo
 	TextureType type;
 	int arraySize;
 	void* textureResource;
+	bool createSrvForRenderTarget;
 };
 
 class Texture2D : Resource

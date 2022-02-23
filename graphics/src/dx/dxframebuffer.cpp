@@ -14,3 +14,12 @@ bool DxFramebuffer::readyForRender()
 {
 	return m_fence->GetCompletedValue() == m_fenceValue;
 }
+
+void DxFramebuffer::waitIfNotReady()
+{
+	if (m_fence->GetCompletedValue() < m_fenceValue)
+	{
+		m_fence->SetEventOnCompletion(m_fenceValue, m_readyEvent);
+		WaitForSingleObjectEx(m_readyEvent, INFINITE, FALSE);
+	}
+}

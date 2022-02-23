@@ -17,6 +17,7 @@ struct PipelineCreateInfo
 	bool conservativeRaster;
 	bool depthTest;
 	bool backfaceCulling;
+	bool wireframe;
 };
 
 class Pipeline : Resource
