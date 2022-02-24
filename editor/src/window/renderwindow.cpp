@@ -26,6 +26,20 @@ void RenderWindow::update()
 		m_viewportSwapchain->resize(m_viewportWidth, m_viewportHeight, nullptr);
 	}
 
+	glm::mat4 viewMatrix = glm::mat4(1.0f);
+	glm::mat4 projectionMatrix = glm::mat4(1.0f);
+
+	static float orthoScale = 0.01f;
+	if (Input::isMouseButtonDown(0))
+		orthoScale -= 0.0001f;
+	if (Input::isMouseButtonDown(1))
+		orthoScale += 0.0001f;
+
+	if (m_viewSelection[View::PERSPECTIVE])
+		projectionMatrix = glm::perspectiveFov(glm::radians(70.0f), m_viewportWidth, m_viewportHeight, 0.01f, 1000.0f);
+	if (m_viewSelection[View::FRONT])
+		projectionMatrix = glm::ortho(-1.0f * orthoScale * m_viewportWidth, 1.0f * orthoScale * m_viewportWidth, -1.0f * orthoScale * m_viewportHeight, 1.0f * orthoScale * m_viewportHeight, -1000.0f, 1000.0f);
+
 	m_viewportFramebuffer = m_viewportSwapchain->acquireNextFrame();
 	m_viewportSwapchain->waitForFrame();
 
@@ -33,9 +47,9 @@ void RenderWindow::update()
 	Renderer::s_render3d->setViewport(0, 0, m_viewportWidth, m_viewportHeight);
 	Renderer::s_render3d->setScissorRect(0, 0, m_viewportWidth, m_viewportHeight);
 	Renderer::s_render3d->clearFrame();
-	if(m_wireframeEnabled)
+	if(m_lightingSelection[Lighting::WIREFRAME])
 		Renderer::setOverridePipeline(m_wireframeShader->getPipeline());
-	Renderer::renderWorld(glm::mat4(1.0f), glm::perspectiveFov(glm::radians(70.0f), m_viewportWidth, m_viewportHeight, 0.01f, 1000.0f));
+	Renderer::renderWorld(viewMatrix, projectionMatrix);
 	Renderer::s_render3d->endFrame();
 	Renderer::setOverridePipeline(nullptr);
 }
@@ -63,11 +77,29 @@ void RenderWindow::render()
 			{
 				if (ImGui::BeginMenu("Lighting"))
 				{
-					ImGui::MenuItem("Combined", NULL, false);
-					ImGui::MenuItem("Realtime", NULL, false);
-					ImGui::MenuItem("Lightmap", NULL, false);
-					ImGui::MenuItem("Unlit", NULL, false);
-					ImGui::MenuItem("Wireframe", NULL, &m_wireframeEnabled);
+					if (ImGui::MenuItem("Combined", NULL, m_lightingSelection[Lighting::COMBINED]))
+						setLighting(Lighting::COMBINED);
+					if (ImGui::MenuItem("Realtime", NULL, m_lightingSelection[Lighting::REALTIME]))
+						setLighting(Lighting::REALTIME);
+					if (ImGui::MenuItem("Lightmap", NULL, m_lightingSelection[Lighting::LIGHTMAP]))
+						setLighting(Lighting::LIGHTMAP);
+					if (ImGui::MenuItem("Unlit", NULL, m_lightingSelection[Lighting::UNLIT]))
+						setLighting(Lighting::UNLIT);
+					if (ImGui::MenuItem("Wireframe", NULL, m_lightingSelection[Lighting::WIREFRAME]))
+						setLighting(Lighting::WIREFRAME);
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("View"))
+				{
+					if (ImGui::MenuItem("Perspective", NULL, m_viewSelection[View::PERSPECTIVE]))
+						setViewType(View::PERSPECTIVE);
+					if (ImGui::MenuItem("Front", NULL, m_viewSelection[View::FRONT]))
+						setViewType(View::FRONT);
+					if (ImGui::MenuItem("Top", NULL, m_viewSelection[View::TOP]))
+						setViewType(View::TOP);
+					if (ImGui::MenuItem("Left", NULL, m_viewSelection[View::LEFT]))
+						setViewType(View::LEFT);
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenuBar();
@@ -93,5 +125,21 @@ void RenderWindow::render()
 void RenderWindow::renderViewport()
 {
 	
+}
+void RenderWindow::setLighting(Lighting lighting)
+{
+	for (int i = 0; i < m_lightingSelection.size(); i++)
+	{
+		m_lightingSelection[i] = false;
+	}
+	m_lightingSelection[lighting] = true;
+}
+void RenderWindow::setViewType(View view)
+{
+	for (int i = 0; i < m_viewSelection.size(); i++)
+	{
+		m_viewSelection[i] = false;
+	}
+	m_viewSelection[view] = true;
 }
 }
