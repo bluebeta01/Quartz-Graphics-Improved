@@ -38,6 +38,11 @@ void Editor::initialize()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
+	float scale = 1.5f;
+	ImFontConfig cfg;
+	cfg.SizePixels = 20;
+	io.Fonts->AddFontDefault(&cfg);
+	
 	io.ConfigFlags |= ImGuiConfigFlags_::ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_::ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_::ImGuiConfigFlags_ViewportsEnable;

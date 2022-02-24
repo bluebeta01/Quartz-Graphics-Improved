@@ -47,13 +47,13 @@ void RenderWindow::render()
 			ImGui::PopStyleVar();
 			if (ImGui::BeginMenuBar())
 			{
-				if (ImGui::BeginMenu("View"))
+				if (ImGui::BeginMenu("Lighting"))
 				{
-					if (ImGui::MenuItem("Test", NULL, &m_wireframeEnabled))
-					{
-						//m_wireframeShader = !m_wireframeShader;
-
-					}
+					ImGui::MenuItem("Combined", NULL, false);
+					ImGui::MenuItem("Realtime", NULL, false);
+					ImGui::MenuItem("Lightmap", NULL, false);
+					ImGui::MenuItem("Unlit", NULL, false);
+					ImGui::MenuItem("Wireframe", NULL, &m_wireframeEnabled);
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenuBar();

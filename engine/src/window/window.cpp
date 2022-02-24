@@ -73,6 +73,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
 void initialize(int width, int height, HWND hwnd)
 {
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+
     if (hwnd != nullptr)
     {
         windowHandle = hwnd;
