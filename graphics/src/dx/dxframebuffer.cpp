@@ -10,6 +10,13 @@ DxFramebuffer::DxFramebuffer(const FramebufferCreateInfo& createInfo) :
 	m_readyEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 }
 
+DxFramebuffer::~DxFramebuffer()
+{
+	m_fence->Release();
+	m_allocator->Release();
+	CloseHandle(m_readyEvent);
+}
+
 bool DxFramebuffer::readyForRender()
 {
 	return m_fence->GetCompletedValue() == m_fenceValue;

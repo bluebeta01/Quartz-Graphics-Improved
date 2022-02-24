@@ -81,16 +81,16 @@ bool Renderer::uploadAsset(std::shared_ptr<Asset> asset)
 	}
 }
 
-void Renderer::renderWorld(const glm::mat4& viewMatrix)
+void Renderer::renderWorld(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix)
 {
 	auto view = World::getEntityRegister().view<const RenderableComponent, const EntityInfoComponent>();
 	for (Entity entity : view)
 	{
-		renderEntity(entity, viewMatrix);
+		renderEntity(entity, viewMatrix, projectionMatrix);
 	}
 }
 
-void Renderer::renderEntity(Entity entity, const glm::mat4& viewMatrix)
+void Renderer::renderEntity(Entity entity, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix)
 {
 	auto& entityInfo = World::getEntityRegister().get<const EntityInfoComponent>(entity);
 	auto& entityRenderInfo = World::getEntityRegister().get<const RenderableComponent>(entity);
@@ -126,15 +126,15 @@ void Renderer::renderEntity(Entity entity, const glm::mat4& viewMatrix)
 			{
 				std::shared_ptr<CBuffer> buffer = s_matrixBufferPool.getNextBuffer();
 
-				glm::mat4 projectionMatrix = glm::perspectiveFovRH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
+				//glm::mat4 projectionMatrix = glm::perspectiveFovRH(70.0f, (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.1f, 1000.0f);
 				glm::mat4 viewMatrixTransposed = viewMatrix;
 				glm::mat4 modelMatrix = Transform::matrixFromTransform(entityInfo.getWorldTransform(), false);
-				projectionMatrix = glm::transpose(projectionMatrix);
+				glm::mat4 projectionMatrixTransposed = glm::transpose(projectionMatrix);
 				modelMatrix = glm::transpose(modelMatrix);
 				viewMatrixTransposed = glm::transpose(viewMatrix);
 				glm::mat4 normalMatrix = glm::transpose(glm::inverse(modelMatrix));
 
-				glm::mat4 mvp[] = { modelMatrix, viewMatrixTransposed, projectionMatrix, normalMatrix };
+				glm::mat4 mvp[] = { modelMatrix, viewMatrixTransposed, projectionMatrixTransposed, normalMatrix };
 				buffer->bufferData(mvp, sizeof(float) * 57);
 
 				s_render3d->bindCBuffer(buffer, bindable->tableIndex);

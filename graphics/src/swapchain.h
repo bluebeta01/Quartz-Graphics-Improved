@@ -21,6 +21,7 @@ public:
 		m_device(createInfo.device), m_width(createInfo.width), m_height(createInfo.height),
 		m_textureArraySize(createInfo.textureArraySize), m_frameCount(createInfo.frameCount)
 	{}
+	virtual ~Swapchain() {}
 
 	static std::shared_ptr<Swapchain> create(const SwapchainCreateInfo& createInfo);
 	virtual std::shared_ptr<Framebuffer> acquireNextFrame() = 0;

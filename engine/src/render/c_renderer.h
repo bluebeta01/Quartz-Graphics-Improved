@@ -23,8 +23,8 @@ public:
 	static void deinitialize();
 	static void update();
 	static bool uploadAsset(std::shared_ptr<Asset> asset);
-	static void renderWorld(const glm::mat4& viewMatrix);
-	static void renderEntity(Entity entity, const glm::mat4& viewMatrix);
+	static void renderWorld(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix);
+	static void renderEntity(Entity entity, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix);
 	static void beginRender();
 	static void endRender();
 	static void resize(int width, int height);

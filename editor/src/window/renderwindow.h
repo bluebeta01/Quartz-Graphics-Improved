@@ -16,8 +16,8 @@ private:
 	std::shared_ptr<Framebuffer> m_viewportFramebuffer;
 	std::shared_ptr<ShaderAsset> m_wireframeShader;
 	bool m_wireframeEnabled = false;
-	float m_viewportWidth = 0;
-	float m_viewportHeight = 0;
+	float m_viewportWidth = 100;
+	float m_viewportHeight = 100;
 	void renderViewport();
 };
 }

@@ -1,6 +1,7 @@
 #include "dxswapchain.h"
 #include "dxdevice.h"
 #include "dxframebuffer.h"
+#include <assert.h>
 
 DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	Swapchain(createInfo)
@@ -40,7 +41,7 @@ void DxSwapchain::resize(int width, int height, void* renderSurface)
 	for (std::shared_ptr<Framebuffer> framebuffer : m_framebuffers)
 		framebuffer->releaseTextures();
 	m_framebuffers.clear();
-	m_swapchain->ResizeBuffers(m_frameCount, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
+	assert(m_swapchain->ResizeBuffers(m_frameCount, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) == S_OK);
 
 	Texture2DCreateInfo dsTextureInfo = {};
 	dsTextureInfo.arraySize = 1;

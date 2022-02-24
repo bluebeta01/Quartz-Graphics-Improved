@@ -158,6 +158,7 @@ void Editor::gameLoop()
 	{
 		Renderer::s_device->waitForIdle();
 		Renderer::s_swapchain->resize(GameWindow::getWidth(), GameWindow::getHeight(), GameWindow::getHandle());
+		Renderer::s_device->waitForIdle();
 	}
 	
 
@@ -167,6 +168,9 @@ void Editor::gameLoop()
 	}
 
 	Renderer::beginRender();
+	Renderer::setViewport(0, 0, (float)GameWindow::getWidth(), (float)GameWindow::getHeight());
+	Renderer::setScissor(0, 0, GameWindow::getWidth(), GameWindow::getHeight());
+	Renderer::clear();
 	renderWindows();
 	Renderer::endRender();
 	Renderer::present();
@@ -218,10 +222,8 @@ void Editor::renderWindows()
 
 	ImGui::Render();
 
-	Renderer::setViewport(0, 0, 1280, 720);
-	Renderer::setScissor(0, 0, 1280, 720);
-	Renderer::clear();
-	Renderer::renderWorld(glm::mat4(1.0f));
+
+	Renderer::renderWorld(glm::mat4(1.0f), glm::perspectiveFov(glm::radians(70.0f), (float)GameWindow::getWidth(), (float)GameWindow::getHeight(), 0.01f, 1000.0f));
 
 	int imguiFontHandleIndex = ((DxDevice*)Renderer::s_device.get())->m_gpuCbvSrvUavHeap->getNextIndex();
 	D3D12_CPU_DESCRIPTOR_HANDLE imguiFontCpuHandle = ((DxDevice*)Renderer::s_device.get())->m_gpuCbvSrvUavHeap->getCPUHandleOfIndex(imguiFontHandleIndex);

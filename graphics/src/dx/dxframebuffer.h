@@ -7,6 +7,7 @@ class DxFramebuffer : public Framebuffer
 {
 public:
 	DxFramebuffer(const FramebufferCreateInfo& createInfo);
+	~DxFramebuffer();
 
 	ID3D12CommandAllocator* getAllocator() const { return m_allocator; }
 	ID3D12Fence* getFence() const { return m_fence; }

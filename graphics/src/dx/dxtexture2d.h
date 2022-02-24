@@ -7,6 +7,7 @@ class DxTexture2D : public Texture2D
 {
 public:
 	DxTexture2D(const Texture2DCreateInfo& createInfo);
+	~DxTexture2D();
 	void release();
 
 	NativeResource getNativeResource() const;

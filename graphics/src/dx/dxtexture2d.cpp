@@ -1,5 +1,6 @@
 #include "dxtexture2d.h"
 #include "dxdevice.h"
+#include <iostream>
 
 DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 	Texture2D(createInfo)
@@ -151,6 +152,10 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			device->getDevice()->CreateShaderResourceView(m_texture, &srvDesc, handle);
 		}
 	}
+}
+
+DxTexture2D::~DxTexture2D()
+{
 }
 
 void DxTexture2D::release()

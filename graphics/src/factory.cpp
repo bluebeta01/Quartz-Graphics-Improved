@@ -23,12 +23,6 @@ std::shared_ptr<Device> Device::create()
 	return std::make_shared<DxDevice>();
 }
 
-void Framebuffer::releaseTextures()
-{
-	for (std::shared_ptr<Texture2D> texture : m_textures)
-		texture->release();
-}
-
 std::shared_ptr<Framebuffer> Framebuffer::create(const FramebufferCreateInfo& createInfo)
 {
 	return std::make_shared<DxFramebuffer>(createInfo);

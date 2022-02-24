@@ -42,6 +42,8 @@ std::shared_ptr<Framebuffer> ViewportSwapchain::getFrontBuffer()
 
 void ViewportSwapchain::resize(int width, int height, void* renderSurface)
 {
+	m_width = width;
+	m_height = height;
 	for (std::shared_ptr<Framebuffer> framebuffer : m_framebuffers)
 		framebuffer->releaseTextures();
 	m_framebuffers.clear();

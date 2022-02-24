@@ -14,7 +14,7 @@ class Framebuffer
 {
 public:
 	Framebuffer(const FramebufferCreateInfo& createInfo);
-	virtual ~Framebuffer() {};
+	virtual ~Framebuffer() {}
 	
 	void releaseTextures();
 

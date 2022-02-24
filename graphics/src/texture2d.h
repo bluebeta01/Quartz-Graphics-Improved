@@ -29,6 +29,7 @@ public:
 	Texture2D(const Texture2DCreateInfo& createInfo) :
 		m_device(createInfo.device), m_width(createInfo.width),
 		m_height(createInfo.height), m_type(createInfo.type), m_arraySize(createInfo.arraySize) {}
+	virtual ~Texture2D() {}
 	virtual void release() = 0;
 
 	static std::shared_ptr<Texture2D> create(const Texture2DCreateInfo& createInfo);
