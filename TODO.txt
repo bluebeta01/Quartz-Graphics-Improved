@@ -1,7 +1,13 @@
---Actually load and store plugin information when loading a plugin in the AssetManager
---Add a virtual file structure so that the game knows what asset files a plugin
+✓ Implement viewport rendering
+✗ Actually load and store plugin information when loading a plugin in the AssetManager
+✗ Add a virtual file structure so that the game knows what asset files a plugin
 	contains and doesn't have to search each plugin for a file when loading
---Add ability to know when a texture is done uploading to the GPU so we can mark it as loaded and
+✗ Add ability to know when a texture is done uploading to the GPU so we can mark it as loaded and
 	delete it's data
-
--Resources need to be loaded into vram properly using upload buffers
+✗ Resources need to be loaded into vram properly using staging/upload buffers
+✗ Add ability to resize textures, swapchains, & framebuffers on the fly
+✗ Uses fence values to detect when the gpu descriptor heap and cbuffer heaps are full and resize them
+✗ Separate the implementation of pipeline state objects and shaders so PSOs can reuses shaders
+✗ Implement color picking in the editor
+✗ Implement a movement gizmo and use line-plane intersection for functionality
+✗ Implement function to proprly calculate position and rotation of child entities
