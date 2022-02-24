@@ -9,7 +9,7 @@ class Device;
 
 enum class TextureType
 {
-	NONE, DEPTH_STENCIL, IMAGE, RENDER_TARGET
+	NONE, DEPTH_STENCIL, IMAGE, RENDER_TARGET, COLORPICK
 };
 
 struct Texture2DCreateInfo

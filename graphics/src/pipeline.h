@@ -18,6 +18,7 @@ struct PipelineCreateInfo
 	bool depthTest;
 	bool backfaceCulling;
 	bool wireframe;
+	bool useUint32;
 };
 
 class Pipeline : Resource

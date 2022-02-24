@@ -3,7 +3,7 @@ cbuffer matracies : register(b0)
 	float4x4 modelMatrix;
 	float4x4 viewMatrix;
 	float4x4 projectionMatrix;
-	float4 color;
+	uint3 color;
 };
 
 struct VOut
@@ -12,7 +12,7 @@ struct VOut
 	float3 pixelPos : POSITION;
 	float3 normal : NORMAL;
 	float2 tex : TEXCOORD0;
-	float4 color : COLOR;
+	uint3 color : COLOR;
 };
 
 VOut VShader(float4 position : POSITION, float4 normal : NORMAL, float2 texcoord : TEXCOORD)
@@ -34,7 +34,7 @@ VOut VShader(float4 position : POSITION, float4 normal : NORMAL, float2 texcoord
 }
 
 
-float4 PShader(float4 position : SV_POSITION, float3 pixelPos : POSITION, float3 normal : NORMAL, float2 tex : TEXCOORD0, float4 color : COLOR) : SV_TARGET
+uint4 PShader(float4 position : SV_POSITION, float3 pixelPos : POSITION, float3 normal : NORMAL, float2 tex : TEXCOORD0, uint3 color : COLOR) : SV_TARGET
 {
-	return color;
+	return uint4(color, 0);
 }

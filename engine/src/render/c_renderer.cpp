@@ -90,11 +90,20 @@ void Renderer::renderWorld(const glm::mat4& viewMatrix, const glm::mat4& project
 	}
 }
 
+void Renderer::renderWorldColorpick(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, unsigned int rgbColor[3])
+{
+	auto view = World::getEntityRegister().view<const RenderableComponent, const EntityInfoComponent>();
+	for (Entity entity : view)
+	{
+		renderEntityColorpick(entity, viewMatrix, projectionMatrix, rgbColor);
+	}
+}
+
 void Renderer::renderEntity(Entity entity, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix)
 {
 	auto& entityInfo = World::getEntityRegister().get<const EntityInfoComponent>(entity);
 	auto& entityRenderInfo = World::getEntityRegister().get<const RenderableComponent>(entity);
-
+	
 	if (!entityRenderInfo.model || !entityRenderInfo.model->dependenciesLoaded())
 		return;
 
@@ -148,6 +157,65 @@ void Renderer::renderEntity(Entity entity, const glm::mat4& viewMatrix, const gl
 	s_render3d->bindResources();
 	s_render3d->renderVBuffer(entityRenderInfo.model->getVBuffer());
 
+}
+
+void Renderer::renderEntityColorpick(Entity entity, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, unsigned int rgbColor[3])
+{
+	auto& entityInfo = World::getEntityRegister().get<const EntityInfoComponent>(entity);
+	auto& entityRenderInfo = World::getEntityRegister().get<const RenderableComponent>(entity);
+
+	if (!entityRenderInfo.model || !entityRenderInfo.model->dependenciesLoaded())
+		return;
+
+	std::shared_ptr<ShaderAsset> colorpickShader =
+		std::static_pointer_cast<ShaderAsset>(AssetManager::getAsset(AssetType::SHADER, "shaders/colorpick.qshader"));
+	if (!colorpickShader->dependenciesLoaded())
+		return;
+
+	std::shared_ptr<Pipeline> pipeline = colorpickShader->getPipeline();
+
+	s_render3d->bindPipeline(pipeline);
+
+	for (std::shared_ptr<ShaderBindableDescription> bindable : pipeline->getShaderBindableDescriptions())
+	{
+		switch (bindable->type)
+		{
+		case ShaderVariableType::CBUFFER:
+		{
+			if (bindable->name == "matracies")
+			{
+				std::shared_ptr<CBuffer> buffer = s_matrixBufferPool.getNextBuffer();
+				glm::mat4 viewMatrixTransposed = viewMatrix;
+				glm::mat4 modelMatrix = Transform::matrixFromTransform(entityInfo.getWorldTransform(), false);
+				glm::mat4 projectionMatrixTransposed = glm::transpose(projectionMatrix);
+				modelMatrix = glm::transpose(modelMatrix);
+				viewMatrixTransposed = glm::transpose(viewMatrix);
+				glm::mat4 normalMatrix = glm::mat4(1.0f);
+
+				struct MatrixBuffer
+				{
+					glm::mat4 modelMatrix;
+					glm::mat4 viewMatrix;
+					glm::mat4 projectionMatrix;
+					unsigned int r;
+					unsigned int g;
+					unsigned int b;
+				};
+
+				MatrixBuffer mbuffer = { modelMatrix, viewMatrixTransposed, projectionMatrixTransposed, rgbColor[0], rgbColor[1], rgbColor[2] };
+
+				buffer->bufferData(&mbuffer, sizeof(mbuffer));
+
+				s_render3d->bindCBuffer(buffer, bindable->tableIndex);
+				//s_render3d->bindCBuffer(entityRenderInfo.cbuffers[s_swapchain->getFrameIndex()], bindable->tableIndex);
+			}
+			break;
+		}
+		}
+	}
+
+	s_render3d->bindResources();
+	s_render3d->renderVBuffer(entityRenderInfo.model->getVBuffer());
 }
 
 void Renderer::beginRender()

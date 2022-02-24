@@ -24,7 +24,9 @@ public:
 	static void update();
 	static bool uploadAsset(std::shared_ptr<Asset> asset);
 	static void renderWorld(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix);
+	static void renderWorldColorpick(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, unsigned int rgbColor[3]);
 	static void renderEntity(Entity entity, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix);
+	static void renderEntityColorpick(Entity entity, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, unsigned int rgbColor[3]);
 	static void beginRender();
 	static void endRender();
 	static void resize(int width, int height);

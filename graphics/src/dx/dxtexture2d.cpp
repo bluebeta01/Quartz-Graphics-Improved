@@ -48,6 +48,13 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 			state = D3D12_RESOURCE_STATE_PRESENT;
 		}
+		if (m_type == TextureType::COLORPICK)
+		{
+			m_clearValue.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+			textureDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+			textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			state = D3D12_RESOURCE_STATE_PRESENT;
+		}
 			
 
 		device->getDevice()->CreateCommittedResource(
@@ -55,7 +62,7 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 			D3D12_HEAP_FLAG_NONE,
 			&textureDesc,
 			state,
-			(m_type == TextureType::IMAGE ? nullptr : (m_type == TextureType::RENDER_TARGET ? &m_clearValue : &m_depthClearValue)),
+			(m_type == TextureType::IMAGE ? nullptr : (m_type == TextureType::RENDER_TARGET || m_type == TextureType::COLORPICK ? &m_clearValue : &m_depthClearValue)),
 			IID_PPV_ARGS(&m_texture)
 		);
 	}
@@ -111,6 +118,25 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 		m_dsvHeapIndex = device->m_cpuDsvHeap->getNextFreeIndex();
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuDsvHeap->getHandleOfIndex(m_dsvHeapIndex);
 		device->getDevice()->CreateDepthStencilView(m_texture, &depthStencilDesc, handle);
+	}
+
+	if (m_type == TextureType::COLORPICK)
+	{
+		D3D12_RENDER_TARGET_VIEW_DESC desc = {};
+		desc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+		if (m_arraySize == 1)
+		{
+			desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		}
+		else
+		{
+			desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+			desc.Texture2DArray.ArraySize = m_arraySize;
+		}
+
+		m_rtvHeapIndex = device->m_cpuRtvHeap->getNextFreeIndex();
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = device->m_cpuRtvHeap->getHandleOfIndex(m_rtvHeapIndex);
+		device->getDevice()->CreateRenderTargetView(m_texture, &desc, handle);
 	}
 
 	if (m_type == TextureType::RENDER_TARGET)
@@ -183,11 +209,15 @@ NativeResource DxTexture2D::getNativeResource() const
 
 LONG_PTR DxTexture2D::getRowPitch() const
 {
+	if (m_type == TextureType::COLORPICK)
+		return m_width * 16;
 	return m_width * 4;
 }
 
 LONG_PTR DxTexture2D::getSlicePitch() const
 {
+	if (m_type == TextureType::COLORPICK)
+		return m_width * 16 * m_height;
 	return m_width * 4 * m_height;
 }
 

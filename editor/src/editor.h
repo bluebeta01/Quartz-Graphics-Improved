@@ -15,5 +15,6 @@ private:
 	static std::vector<std::shared_ptr<EditorWindow>> m_windows;
 	static void gameLoop();
 	static void renderWindows();
+	static void initializeImgui();
 };
 }

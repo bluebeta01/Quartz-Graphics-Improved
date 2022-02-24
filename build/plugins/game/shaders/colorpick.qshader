@@ -1,0 +1,7 @@
+{
+	"ps_source" : "shaders/source/dx/colorpick.hlsl",
+	"ps_entrypoint" : "PShader",
+	"vs_source" : "shaders/source/dx/colorpick.hlsl",
+	"vs_entrypoint" : "VShader",
+	"uint32" : true
+}

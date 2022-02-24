@@ -90,7 +90,13 @@ std::vector<uint8_t> DxDevice::readbackTexture(std::shared_ptr<Texture2D> textur
     source.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
     source.SubresourceIndex = 0;
 
-    CD3DX12_SUBRESOURCE_FOOTPRINT destinationFootprint(DXGI_FORMAT_R8G8B8A8_UNORM, dxtex->getWidth(), dxtex->getHeight(), 1, dxtex->getRowPitch());
+    DXGI_FORMAT format;
+    if (texture->getType() == TextureType::RENDER_TARGET)
+        format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+    if (texture->getType() == TextureType::COLORPICK)
+        format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_UINT;
+
+    CD3DX12_SUBRESOURCE_FOOTPRINT destinationFootprint(format, dxtex->getWidth(), dxtex->getHeight(), 1, dxtex->getRowPitch());
     CD3DX12_TEXTURE_COPY_LOCATION destination(dxtex->getReadbackBuffer());
     destination.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
     destination.PlacedFootprint.Footprint = destinationFootprint;

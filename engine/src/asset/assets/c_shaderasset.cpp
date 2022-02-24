@@ -70,6 +70,11 @@ void ShaderAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 	if (wireframe != json.end())
 		wireframeFill = *wireframe;
 
+	nlohmann::json::boolean_t useUint32 = false;
+	auto& utin32 = json.find("uint32");
+	if (utin32 != json.end())
+		useUint32 = *utin32;
+
 	PipelineCreateInfo info = {};
 	info.device = Renderer::s_device;
 	info.id = shader->m_id;
@@ -81,6 +86,7 @@ void ShaderAsset::loadCallback(std::shared_ptr<void> callbackArgs)
 	info.depthTest = depthTest;
 	info.backfaceCulling = backfaceCulling;
 	info.wireframe = wireframeFill;
+	info.useUint32 = useUint32;
 
 	shader->m_pipeline = Pipeline::create(info);
 	

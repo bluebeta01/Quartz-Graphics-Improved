@@ -7,6 +7,8 @@ std::vector<char> Input::m_keysDown;
 std::vector<char> Input::m_keysDownThisFrame;
 std::vector<int> Input::m_mouseButtonsDown;
 std::vector<int> Input::m_mouseButtonsDownThisFrame;
+int Input::m_cursorX;
+int Input::m_cursorY;
 
 Input::Input()
 {
@@ -59,6 +61,11 @@ void Input::registerMouseButtonUp(int button)
 			m_mouseButtonsDown.erase(m_mouseButtonsDown.begin() + i);
 	}
 }
+void Input::registerCursorPosition(int x, int y)
+{
+	m_cursorX = x;
+	m_cursorY = y;
+}
 bool Input::isKeyDown(char key)
 {
 	for (char c : m_keysDown)
@@ -88,5 +95,13 @@ bool Input::isMouseButtonDownThisFrame(int button)
 			return true;
 	}
 	return false;
+}
+int Input::getCursorX()
+{
+	return m_cursorX;
+}
+int Input::getCursorY()
+{
+	return m_cursorY;
 }
 }

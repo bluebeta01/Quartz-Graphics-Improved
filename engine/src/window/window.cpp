@@ -137,6 +137,11 @@ void update()
 
         // send the message to the WindowProc function
         DispatchMessage(&msg);
+
+        POINT point;
+        GetCursorPos(&point);
+        ScreenToClient(windowHandle, &point);
+        Input::registerCursorPosition(point.x, point.y);
     }
 }
 }
