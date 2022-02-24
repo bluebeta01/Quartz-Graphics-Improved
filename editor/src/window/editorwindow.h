@@ -16,5 +16,8 @@ public:
 protected:
 	bool m_visible = false;
 	std::string m_name = "NoName";
+	float m_width = 0;
+	float m_height = 0;
+	bool m_resized = false;
 };
 }

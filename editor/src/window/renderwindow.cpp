@@ -20,6 +20,12 @@ void RenderWindow::initialize()
 }
 void RenderWindow::update()
 {
+	if (m_resized)
+	{
+		Renderer::s_device->waitForIdle();
+		m_viewportSwapchain->resize(m_width, m_height, nullptr);
+	}
+
 	m_viewportFramebuffer = m_viewportSwapchain->acquireNextFrame();
 	m_viewportSwapchain->waitForFrame();
 
@@ -44,6 +50,14 @@ void RenderWindow::render()
 
 		if (ImGui::Begin(m_name.c_str(), &m_visible, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse))
 		{
+			ImVec2 currentWindowSize = ImGui::GetWindowSize();
+			if (m_width != currentWindowSize.x || m_height != currentWindowSize.y)
+				m_resized = true;
+			else
+				m_resized = false;
+			m_width = currentWindowSize.x;
+			m_height = currentWindowSize.y;
+
 			ImGui::PopStyleVar();
 			if (ImGui::BeginMenuBar())
 			{

@@ -7,6 +7,7 @@ class DxTexture2D : public Texture2D
 {
 public:
 	DxTexture2D(const Texture2DCreateInfo& createInfo);
+	void release();
 
 	NativeResource getNativeResource() const;
 	LONG_PTR getRowPitch() const;
@@ -29,9 +30,9 @@ private:
 	ID3D12Resource* m_uploadBuffer = nullptr;
 	ID3D12Resource* m_readbackBuffer = nullptr;
 	D3D12_RESOURCE_DESC m_resourceDesc = {};
-	int m_rtvHeapIndex = 0;
-	int m_dsvHeapIndex = 0;
-	int m_srvHeapIndex = 0;
+	int m_rtvHeapIndex = -1;
+	int m_dsvHeapIndex = -1;
+	int m_srvHeapIndex = -1;
 	D3D12_SUBRESOURCE_DATA m_subresourceData = {};
 	D3D12_CLEAR_VALUE m_clearValue = {};
 	D3D12_CLEAR_VALUE m_depthClearValue = {};

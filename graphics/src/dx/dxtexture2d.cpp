@@ -153,6 +153,24 @@ DxTexture2D::DxTexture2D(const Texture2DCreateInfo& createInfo) :
 	}
 }
 
+void DxTexture2D::release()
+{
+	if (m_texture)
+		m_texture->Release();
+	if (m_uploadBuffer)
+		m_uploadBuffer->Release();
+	if (m_readbackBuffer)
+		m_readbackBuffer->Release();
+
+	DxDevice* device = (DxDevice*)m_device.get();
+	if (m_rtvHeapIndex != -1)
+		device->m_cpuRtvHeap->freeIndex(m_rtvHeapIndex);
+	if (m_dsvHeapIndex != -1)
+		device->m_cpuDsvHeap->freeIndex(m_dsvHeapIndex);
+	if (m_srvHeapIndex != -1)
+		device->m_cpuCbvSrvUavHeap->freeIndex(m_srvHeapIndex);
+}
+
 NativeResource DxTexture2D::getNativeResource() const
 {
 	return (NativeResource)m_texture;

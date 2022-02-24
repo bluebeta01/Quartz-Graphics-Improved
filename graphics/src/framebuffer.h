@@ -15,6 +15,8 @@ class Framebuffer
 public:
 	Framebuffer(const FramebufferCreateInfo& createInfo);
 	virtual ~Framebuffer() {};
+	
+	void releaseTextures();
 
 	static std::shared_ptr<Framebuffer> create(const FramebufferCreateInfo& createInfo);
 	void setTexture(int textureIndex, std::shared_ptr<Texture2D> texture);

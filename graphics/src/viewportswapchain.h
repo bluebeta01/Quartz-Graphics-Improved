@@ -13,7 +13,8 @@ public:
 	void releaseFrame();
 	void present();
 	std::shared_ptr<Framebuffer> getFrontBuffer();
+	void resize(int width, int height, void* renderSurface);
 
 private:
-
+	void makeSwapchain();
 };

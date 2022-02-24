@@ -130,7 +130,7 @@ void Editor::initialize()
 	m_windows.push_back(std::static_pointer_cast<EditorWindow>(std::make_shared<RenderWindow>()));
 	m_windows.back()->initialize();
 
-	m_windows.push_back(std::static_pointer_cast<EditorWindow>(std::make_shared<RenderWindow>()));
+	/*m_windows.push_back(std::static_pointer_cast<EditorWindow>(std::make_shared<RenderWindow>()));
 	m_windows.back()->setName("View 2");
 	m_windows.back()->initialize();
 
@@ -140,7 +140,7 @@ void Editor::initialize()
 
 	m_windows.push_back(std::static_pointer_cast<EditorWindow>(std::make_shared<RenderWindow>()));
 	m_windows.back()->setName("View 4");
-	m_windows.back()->initialize();
+	m_windows.back()->initialize();*/
 
 	while (!GameWindow::getTerminated())
 		gameLoop();
@@ -153,6 +153,12 @@ void Editor::gameLoop()
 {
 	m_engine.updateSystems();
 	ImGui_ImplWin32_WndProcHandler(*GameWindow::getHandle(), Window::message, Window::wParam, Window::lParam);
+
+	if (GameWindow::getReiszedFlag())
+	{
+		Renderer::s_device->waitForIdle();
+		Renderer::s_swapchain->resize(GameWindow::getWidth(), GameWindow::getHeight(), GameWindow::getHandle());
+	}
 	
 
 	for (std::shared_ptr<EditorWindow>& window : m_windows)

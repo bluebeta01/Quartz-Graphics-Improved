@@ -12,10 +12,12 @@ public:
 	void waitForFrame();
 	void releaseFrame();
 	void present();
+	void resize(int width, int height, void* renderSurface);
 
 	NativeResource getNativeResource() const { return (NativeResource)m_swapchain; }
 	IDXGISwapChain3* getSwapchain() const { return m_swapchain; }
 
 private:
 	IDXGISwapChain3* m_swapchain = nullptr;
+	void makeSwapchain(void* renderSurface);
 };

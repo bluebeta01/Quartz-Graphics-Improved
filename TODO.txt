@@ -5,7 +5,7 @@
 ✗ Add ability to know when a texture is done uploading to the GPU so we can mark it as loaded and
 	delete it's data
 ✗ Resources need to be loaded into vram properly using staging/upload buffers
-✗ Add ability to resize textures, swapchains, & framebuffers on the fly
+✓ Add ability to resize textures, swapchains, & framebuffers on the fly
 ✗ Uses fence values to detect when the gpu descriptor heap and cbuffer heaps are full and resize them
 ✗ Separate the implementation of pipeline state objects and shaders so PSOs can reuses shaders
 ✗ Implement color picking in the editor

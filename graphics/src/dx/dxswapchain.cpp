@@ -5,6 +5,80 @@
 DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	Swapchain(createInfo)
 {
+	makeSwapchain(createInfo.renderSurface);
+}
+
+std::shared_ptr<Framebuffer> DxSwapchain::acquireNextFrame()
+{
+	m_frameIndex = m_swapchain->GetCurrentBackBufferIndex();
+	return m_framebuffers[m_frameIndex];
+}
+
+void DxSwapchain::waitForFrame()
+{
+	std::shared_ptr<DxFramebuffer> framebuffer = std::static_pointer_cast<DxFramebuffer>(m_framebuffers[m_frameIndex]);
+	if (framebuffer->getFence()->GetCompletedValue() <= framebuffer->getFenceValue())
+	{
+		HRESULT r = framebuffer->getFence()->SetEventOnCompletion(framebuffer->getFenceValue(), framebuffer->getReadyEvent());
+		WaitForSingleObjectEx(framebuffer->getReadyEvent(), INFINITE, FALSE);
+	}
+}
+
+void DxSwapchain::releaseFrame()
+{
+}
+
+void DxSwapchain::present()
+{
+	HRESULT r = m_swapchain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+}
+
+void DxSwapchain::resize(int width, int height, void* renderSurface)
+{
+	m_width = width;
+	m_height = height;
+	for (std::shared_ptr<Framebuffer> framebuffer : m_framebuffers)
+		framebuffer->releaseTextures();
+	m_framebuffers.clear();
+	m_swapchain->ResizeBuffers(m_frameCount, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
+
+	Texture2DCreateInfo dsTextureInfo = {};
+	dsTextureInfo.arraySize = 1;
+	dsTextureInfo.textureResource = nullptr;
+	dsTextureInfo.device = m_device;
+	dsTextureInfo.height = m_height;
+	dsTextureInfo.width = m_width;
+	dsTextureInfo.type = TextureType::DEPTH_STENCIL;
+
+	Texture2DCreateInfo rtTextureInfo = {};
+	rtTextureInfo.arraySize = 1;
+	rtTextureInfo.textureResource = nullptr;
+	rtTextureInfo.device = m_device;
+	rtTextureInfo.height = m_height;
+	rtTextureInfo.width = m_width;
+	rtTextureInfo.type = TextureType::RENDER_TARGET;
+
+	for (int frame = 0; frame < m_frameCount; frame++)
+	{
+		ID3D12Resource* rtTextureResource;
+		m_swapchain->GetBuffer(frame, IID_PPV_ARGS(&rtTextureResource));
+		rtTextureInfo.textureResource = (void*)rtTextureResource;
+		std::shared_ptr<Texture2D> dsTexture = Texture2D::create(dsTextureInfo);
+		std::shared_ptr<Texture2D> rtTexture = Texture2D::create(rtTextureInfo);
+
+		std::vector<std::shared_ptr<Texture2D>> textures = { rtTexture, dsTexture };
+
+		FramebufferCreateInfo fbInfo = {};
+		fbInfo.device = m_device;
+		fbInfo.textureCount = textures.size();
+		fbInfo.textures = &textures;
+		std::shared_ptr<Framebuffer> framebuffer = Framebuffer::create(fbInfo);
+		m_framebuffers.push_back(framebuffer);
+	}
+}
+
+void DxSwapchain::makeSwapchain(void* renderSurface)
+{
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 	swapChainDesc.BufferCount = m_frameCount;
 	swapChainDesc.Width = m_width;
@@ -16,9 +90,9 @@ DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 	std::shared_ptr<DxDevice> device = std::static_pointer_cast<DxDevice>(m_device);
-	HWND* hwnd = (HWND*)createInfo.renderSurface;
+	HWND* hwnd = (HWND*)renderSurface;
 	IDXGISwapChain1* swapChain;
-	device->getFactory()->CreateSwapChainForHwnd(
+	HRESULT r = device->getFactory()->CreateSwapChainForHwnd(
 		device->getQueue(),
 		*hwnd,
 		&swapChainDesc,
@@ -64,32 +138,4 @@ DxSwapchain::DxSwapchain(const SwapchainCreateInfo& createInfo) :
 		std::shared_ptr<Framebuffer> framebuffer = Framebuffer::create(fbInfo);
 		m_framebuffers.push_back(framebuffer);
 	}
-
-
-	
-}
-
-std::shared_ptr<Framebuffer> DxSwapchain::acquireNextFrame()
-{
-	m_frameIndex = m_swapchain->GetCurrentBackBufferIndex();
-	return m_framebuffers[m_frameIndex];
-}
-
-void DxSwapchain::waitForFrame()
-{
-	std::shared_ptr<DxFramebuffer> framebuffer = std::static_pointer_cast<DxFramebuffer>(m_framebuffers[m_frameIndex]);
-	if (framebuffer->getFence()->GetCompletedValue() <= framebuffer->getFenceValue())
-	{
-		HRESULT r = framebuffer->getFence()->SetEventOnCompletion(framebuffer->getFenceValue(), framebuffer->getReadyEvent());
-		WaitForSingleObjectEx(framebuffer->getReadyEvent(), INFINITE, FALSE);
-	}
-}
-
-void DxSwapchain::releaseFrame()
-{
-}
-
-void DxSwapchain::present()
-{
-	HRESULT r = m_swapchain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
 }

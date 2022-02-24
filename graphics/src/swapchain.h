@@ -27,6 +27,7 @@ public:
 	virtual void waitForFrame() = 0;
 	virtual void releaseFrame() = 0;
 	virtual void present() = 0;
+	virtual void resize(int width, int height, void* renderSurface) = 0;
 
 	std::shared_ptr<Device> getDevice() const { return m_device; }
 	int getWidth() const { return m_width; }
