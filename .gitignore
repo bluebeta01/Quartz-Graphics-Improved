@@ -15,7 +15,9 @@ obj/
 *.lib
 *.o
 *.obj
-!premake/premake5.exe
+*.cmake
+CMakeCache.txt
+CMakeFiles/
 
 # User-specific files
 *.rsuser

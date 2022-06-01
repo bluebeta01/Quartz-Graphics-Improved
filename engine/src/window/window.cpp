@@ -94,7 +94,7 @@ void initialize(int width, int height, HWND hwnd)
     wc.hInstance = NULL;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
-    wc.lpszClassName = L"WindowClass1";
+    wc.lpszClassName = (LPCSTR)L"WindowClass1";
 
     // register the window class
     RegisterClassEx(&wc);
@@ -104,8 +104,8 @@ void initialize(int width, int height, HWND hwnd)
 
     // create the window and use the result as the handle
     windowHandle = CreateWindowEx(NULL,
-        L"WindowClass1",    // name of the window class
-        L"Quartz Engine",   // title of the window
+        (LPSTR)L"WindowClass1",    // name of the window class
+        (LPSTR)L"Quartz Engine",   // title of the window
         WS_OVERLAPPEDWINDOW,    // window style
         100,    // x-position of the window
         100,    // y-position of the window
