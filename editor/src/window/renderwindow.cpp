@@ -62,6 +62,7 @@ void RenderWindow::render()
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
+		ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
 		if (ImGui::Begin(m_name.c_str(), &m_visible, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse))
 		{
 			ImVec2 currentWindowSize = ImGui::GetWindowSize();
@@ -110,8 +111,8 @@ void RenderWindow::render()
 			
 			ImVec2 winSize = ImGui::GetWindowSize();
 			winSize.y -= ImGui::GetFrameHeight() * 2;
-			m_viewportWidth = winSize.x;
-			m_viewportHeight = winSize.y;
+			m_viewportWidth = std::fmax(winSize.x, 10.0f);
+			m_viewportHeight = std::fmax(winSize.y, 10.0f);
 			ImGui::Image(texid, winSize);
 			
 		}
