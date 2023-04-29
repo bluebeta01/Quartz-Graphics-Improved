@@ -175,9 +175,11 @@ void Editor::initializeImgui()
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	float scale = 1.5f;
-	ImFontConfig cfg;
+	/*ImFontConfig cfg;
 	cfg.SizePixels = 20;
-	io.Fonts->AddFontDefault(&cfg);
+	io.Fonts->AddFontDefault(&cfg);*/
+	io.Fonts->AddFontFromFileTTF("./OpenSans-Regular.ttf", 25);
+
 
 	io.ConfigFlags |= ImGuiConfigFlags_::ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_::ImGuiConfigFlags_DockingEnable;
