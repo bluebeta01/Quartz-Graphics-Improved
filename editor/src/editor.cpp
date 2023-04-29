@@ -47,13 +47,7 @@ void Editor::initialize()
 	m_windows.back()->setName("View 2");
 	m_windows.back()->initialize();
 
-	m_windows.push_back(std::static_pointer_cast<EditorWindow>(std::make_shared<RenderWindow>()));
-	m_windows.back()->setName("View 3");
-	m_windows.back()->initialize();
-
-	m_windows.push_back(std::static_pointer_cast<EditorWindow>(std::make_shared<RenderWindow>()));
-	m_windows.back()->setName("View 4");
-	m_windows.back()->initialize();
+	Window::windowProcCallback = ImGui_ImplWin32_WndProcHandler;
 
 	while (!GameWindow::getTerminated())
 		gameLoop();
@@ -64,8 +58,23 @@ void Editor::initialize()
 
 void Editor::gameLoop()
 {
+	static float delta = 0;
+	static long long oldFrameTime = 0;
+	long long frameTime1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+	delta = (float)(frameTime1 - oldFrameTime) / 1000.0f;
+	oldFrameTime = frameTime1;
+	static float avg = 0;
+	avg = avg + ((delta - avg) / 10);
+
+	static float runningTime = 0;
+	runningTime += delta;
+	if (runningTime > 1)
+	{
+		runningTime = 0;
+		QZINFO("Average FPS: {0}", 1 / avg);
+	}
+
 	m_engine.updateSystems();
-	ImGui_ImplWin32_WndProcHandler(*GameWindow::getHandle(), Window::message, Window::wParam, Window::lParam);
 
 	if (GameWindow::getReiszedFlag())
 	{
