@@ -109,7 +109,7 @@ void initialize(int width, int height, HWND hwnd)
     // create the window and use the result as the handle
     windowHandle = CreateWindowEx(NULL,
         (LPSTR)L"WindowClass1",    // name of the window class
-        (LPSTR)L"Quartz Engine",   // title of the window
+        (LPSTR)"Quartz Engine",   // title of the window
         WS_OVERLAPPEDWINDOW,    // window style
         100,    // x-position of the window
         100,    // y-position of the window
