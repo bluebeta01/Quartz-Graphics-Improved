@@ -246,8 +246,11 @@ void Renderer::setOverridePipeline(std::shared_ptr<Pipeline> pipeline)
 }
 void Renderer::resize(int width, int height)
 {
+	s_device->waitForIdle();
+	s_swapchain->resize(width, height, GameWindow::getHandle());
+	s_device->waitForIdle();
 	//s_swapChain->resize(width, height, GameWindow::getHandle());
-	//s_render3D->resize(width, height);
+	//s_render3d->resize(width, height);
 }
 void Renderer::setViewport(float x, float y, float width, float height)
 {
