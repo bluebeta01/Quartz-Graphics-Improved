@@ -12,12 +12,16 @@ MSG msg;
 WPARAM wParam;
 LPARAM lParam;
 UINT message;
+std::function<LRESULT(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)> windowProcCallback;
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     Window::message = message;
     Window::wParam = wParam;
     Window::lParam = lParam;
+
+    if (windowProcCallback != nullptr && windowProcCallback(hWnd, message, wParam, lParam))
+        return true;
 
     switch (message)
     {

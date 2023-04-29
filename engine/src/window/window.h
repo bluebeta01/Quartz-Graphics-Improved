@@ -1,5 +1,7 @@
 #pragma once
 #include <Windows.h>
+#include <functional>
+#include <memory>
 
 namespace Quartz
 {
@@ -12,5 +14,6 @@ extern LPARAM lParam;
 extern UINT message;
 extern void initialize(int width, int height, HWND hwnd = nullptr);
 extern void update();
+extern std::function<LRESULT(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)> windowProcCallback;
 }
 }
